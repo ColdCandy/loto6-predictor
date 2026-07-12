@@ -3,9 +3,18 @@
 from __future__ import annotations
 
 import random
+from datetime import datetime
 from itertools import combinations
 
 from .analyzer import Loto6Analyzer
+from .loto7_data import load_draws as load_loto7_draws
+from .monthly_patterns import (
+    anchor_correlation_scores,
+    get_current_month_anchor,
+    loto6_loto7_overlap_scores,
+    monthly_analysis_summary,
+    monthly_unlikely_numbers,
+)
 
 
 def _format_numbers(nums: list[int]) -> str:
@@ -162,8 +171,6 @@ def strategy_balanced_mix(analyzer: Loto6Analyzer, seed: int | None = None) -> d
     for _ in range(1000):
         odds = [n for n in ranked if n % 2 == 1][:12]
         evens = [n for n in ranked if n % 2 == 0][:12]
-        low = [n for n in ranked if n <= 22][:12]
-        high = [n for n in ranked if n > 22][:12]
 
         pick = set()
         pick.update(rng.sample(odds, min(3, len(odds))))
@@ -185,6 +192,123 @@ def strategy_balanced_mix(analyzer: Loto6Analyzer, seed: int | None = None) -> d
         "description": "奇数/偶数・小/大のバランスを考慮して選びます",
         "numbers": nums,
         "formatted": _format_numbers(nums),
+    }
+
+
+def strategy_monthly_anchor(analyzer: Loto6Analyzer, seed: int | None = None) -> dict:
+    """月初回抽選（月・木）起点の月次パターン法"""
+    now = datetime.now()
+    summary = monthly_analysis_summary(analyzer.draws, now.year, now.month)
+    scores = anchor_correlation_scores(analyzer.draws, now.month)
+
+    anchor = summary["anchor"]
+    if anchor:
+        for n in anchor.numbers:
+            scores[n] = scores.get(n, 0) + 0.4
+
+    nums = _pick_from_scores(analyzer, scores, seed)
+    anchor_str = " ".join(f"{n:02d}" for n in summary["anchor_numbers"]) if summary["anchor_numbers"] else "なし"
+
+    return {
+        "name": "月次起点法",
+        "description": (
+            f"{summary['month_label']}の最初の月・木抽選（第{summary['anchor_round']}回 {summary['anchor_date']}）"
+            f"を起点に、過去{summary['years_analyzed']}年分の同月データから出やすい番号を選びます"
+        ),
+        "numbers": nums,
+        "formatted": _format_numbers(nums),
+        "anchor_numbers": summary["anchor_numbers"],
+        "anchor_info": f"起点: {anchor_str}",
+        "month_top": summary["top_scored"][:6],
+    }
+
+
+def strategy_monthly_inverse(analyzer: Loto6Analyzer, seed: int | None = None) -> dict:
+    """今月出にくい数字を逆に組み込む法"""
+    now = datetime.now()
+    unlikely = monthly_unlikely_numbers(analyzer.draws, now.month, now.year, count=15)
+    unlikely_nums = [n for n, _count, _r in unlikely[:10]]
+
+    monthly_scores = anchor_correlation_scores(analyzer.draws, now.month)
+    rng = random.Random(seed)
+
+    combined_scores: dict[int, float] = {}
+    for n in range(1, 44):
+        combined_scores[n] = monthly_scores.get(n, 0) * 0.4
+    for n in unlikely_nums[:8]:
+        combined_scores[n] = combined_scores.get(n, 0) + 0.6
+
+    for _ in range(500):
+        inverse_pick = set(rng.sample(unlikely_nums[:8], min(3, len(unlikely_nums[:8]))))
+        hot_pick = sorted(monthly_scores.items(), key=lambda x: x[1], reverse=True)[:12]
+        hot_nums = [n for n, _ in hot_pick if n not in inverse_pick]
+        pick = set(inverse_pick)
+        pick.update(rng.sample(hot_nums, min(3, len(hot_nums))))
+        while len(pick) < 6:
+            n = rng.choice(unlikely_nums + hot_nums)
+            pick.add(n)
+        nums = list(pick)[:6]
+        if _is_balanced(nums):
+            return {
+                "name": "月次逆張り法",
+                "description": (
+                    f"{now.month}月に統計的に出にくい数字を逆に予想に組み込み、"
+                    f"同月の出やすい数字とブレンドします"
+                ),
+                "numbers": nums,
+                "formatted": _format_numbers(nums),
+                "unlikely_numbers": unlikely_nums[:10],
+                "unlikely_detail": [(n, c, r) for n, c, r in unlikely[:8]],
+            }
+
+    nums = _pick_from_scores(analyzer, combined_scores, seed)
+    return {
+        "name": "月次逆張り法",
+        "description": f"{now.month}月に出にくい数字を逆に予想番号へ組み込みます",
+        "numbers": nums,
+        "formatted": _format_numbers(nums),
+        "unlikely_numbers": unlikely_nums[:10],
+        "unlikely_detail": [(n, c, r) for n, c, r in unlikely[:8]],
+    }
+
+
+def strategy_loto67_overlap(analyzer: Loto6Analyzer, seed: int | None = None) -> dict:
+    """ロト6・ロト7の重複数字から予想"""
+    loto7_draws = load_loto7_draws()
+    if not loto7_draws:
+        scores = analyzer.number_scores()
+        nums = _pick_from_scores(analyzer, scores, seed)
+        return {
+            "name": "ロト6・7重複法",
+            "description": "ロト7データ未取得のためロト6スコアで代替",
+            "numbers": nums,
+            "formatted": _format_numbers(nums),
+        }
+
+    scores = loto6_loto7_overlap_scores(analyzer.draws, loto7_draws)
+    for n in range(38, 44):
+        scores[n] = scores.get(n, 0) * 0.3
+
+    nums = _pick_from_scores(analyzer, scores, seed)
+
+    latest_l6 = set(analyzer.draws[-1].numbers) if analyzer.draws else set()
+    latest_l7 = set(loto7_draws[-1].numbers)
+    overlap_latest = sorted(latest_l6 & latest_l7)
+    top_overlap = sorted(scores.items(), key=lambda x: x[1], reverse=True)[:10]
+
+    return {
+        "name": "ロト6・7重複法",
+        "description": (
+            f"ロト6(1-43)とロト7(1-37)の共通数字の出現傾向から選びます。"
+            f" 最新ロト7第{loto7_draws[-1].round_num}回との重複: "
+            + (" ".join(f"{n:02d}" for n in overlap_latest) if overlap_latest else "なし")
+        ),
+        "numbers": nums,
+        "formatted": _format_numbers(nums),
+        "overlap_latest": overlap_latest,
+        "top_overlap": top_overlap[:8],
+        "loto7_latest": list(loto7_draws[-1].numbers),
+        "loto7_round": loto7_draws[-1].round_num,
     }
 
 
@@ -234,6 +358,9 @@ def generate_multiple_lines(
 
 STRATEGY_FUNCTIONS = [
     strategy_composite,
+    strategy_monthly_anchor,
+    strategy_monthly_inverse,
+    strategy_loto67_overlap,
     strategy_hot_numbers,
     strategy_recent_trend,
     strategy_overdue,
@@ -244,6 +371,9 @@ STRATEGY_FUNCTIONS = [
 
 STRATEGY_BY_NAME: dict[str, callable] = {
     "複合スコア法（おすすめ）": strategy_composite,
+    "月次起点法": strategy_monthly_anchor,
+    "月次逆張り法": strategy_monthly_inverse,
+    "ロト6・7重複法": strategy_loto67_overlap,
     "ホットナンバー法": strategy_hot_numbers,
     "直近トレンド法": strategy_recent_trend,
     "間隔分析（出遅れ）法": strategy_overdue,

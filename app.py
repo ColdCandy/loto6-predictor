@@ -33,8 +33,15 @@ from loto6_predictor.strategies import (
     generate_all_predictions,
     generate_multiple_lines,
     strategy_composite,
+    strategy_loto67_overlap,
+    strategy_monthly_anchor,
+    strategy_monthly_inverse,
     strategy_quick_pick,
 )
+from loto6_predictor.monthly_patterns import monthly_analysis_summary
+from loto6_predictor.loto7_data import DEFAULT_DATA_PATH as LOTO7_DATA_PATH
+from loto6_predictor.loto7_data import get_data_status as get_loto7_data_status
+from loto6_predictor.loto7_data import load_draws as load_loto7_draws
 
 
 def _get_lan_ip() -> str | None:
@@ -213,6 +220,18 @@ def render_prediction(pred: dict) -> None:
         f"小{info['小(1-22)']}/大{info['大(23-43)']} ｜ "
         f"合計{info['合計']} ｜ 連番{info['連番ペア']}組"
     )
+    if pred.get("anchor_info"):
+        st.caption(f"📌 {pred['anchor_info']}")
+    if pred.get("unlikely_numbers"):
+        elim = " ".join(f"{n:02d}" for n in pred["unlikely_numbers"])
+        st.caption(f"今月出にくい数字（逆張り採用）: {elim}")
+    if pred.get("overlap_latest") is not None:
+        if pred["overlap_latest"]:
+            ov = " ".join(f"{n:02d}" for n in pred["overlap_latest"])
+            st.caption(f"最新ロト6・7重複: {ov}")
+        if pred.get("loto7_latest"):
+            l7 = " ".join(f"{n:02d}" for n in pred["loto7_latest"])
+            st.caption(f"最新ロト7本数字: {l7}（第{pred.get('loto7_round', '?')}回）")
     if "eliminated" in pred and pred["eliminated"]:
         elim = " ".join(f"{n:02d}" for n in pred["eliminated"][:12])
         st.caption(f"除外候補: {elim}")
@@ -326,6 +345,64 @@ def main() -> None:
 
     with tab_predict:
         st.subheader("予想法を選んでボタンを押してください")
+
+        now_month = monthly_analysis_summary(analyzer.draws)
+        with st.expander(f"📅 {now_month['month_label']}の分析（起点・出にくい数字・ロト7重複）", expanded=True):
+            mc1, mc2, mc3 = st.columns(3)
+            with mc1:
+                st.markdown("**月初回抽選（起点）**")
+                if now_month["anchor"]:
+                    render_balls(now_month["anchor_numbers"])
+                    st.caption(
+                        f"第{now_month['anchor_round']}回 {now_month['anchor_date']} "
+                        f"（{now_month['years_analyzed']}年分の同月データを分析）"
+                    )
+                else:
+                    st.caption("今月の起点データなし")
+            with mc2:
+                st.markdown("**今月出にくい数字 TOP8**")
+                unlikely_text = " ".join(
+                    f"{n:02d}" for n, _c, _r in now_month["unlikely"][:8]
+                )
+                st.code(unlikely_text, language=None)
+                st.caption("月次逆張り法で逆に予想へ組み込みます")
+            with mc3:
+                st.markdown("**ロト6・7重複傾向**")
+                l7 = load_loto7_draws()
+                if l7:
+                    l6_set = set(analyzer.latest.numbers) if analyzer.latest else set()
+                    l7_set = set(l7[-1].numbers)
+                    overlap = sorted(l6_set & l7_set)
+                    st.caption(f"最新ロト7: 第{l7[-1].round_num}回")
+                    if overlap:
+                        st.code(" ".join(f"{n:02d}" for n in overlap), language=None)
+                    else:
+                        st.caption("最新回の直接重複なし（歴史傾向で分析）")
+                else:
+                    st.caption("ロト7データ取得中...")
+
+            st.markdown("**今月の出やすい数字 TOP10**")
+            top_m = "  ".join(f"{n:02d}({c}回)" for n, c in now_month["top_monthly"][:10])
+            st.caption(top_m)
+
+            special_cols = st.columns(3)
+            with special_cols[0]:
+                if st.button("📅 月次起点法", use_container_width=True, type="primary"):
+                    st.session_state.selected_key = "月次起点法"
+                    st.session_state.selected = strategy_monthly_anchor(analyzer, seed=seed)
+                    st.session_state.results = None
+            with special_cols[1]:
+                if st.button("🔄 月次逆張り法", use_container_width=True, type="primary"):
+                    st.session_state.selected_key = "月次逆張り法"
+                    st.session_state.selected = strategy_monthly_inverse(analyzer, seed=seed)
+                    st.session_state.results = None
+            with special_cols[2]:
+                if st.button("🎱 ロト6・7重複法", use_container_width=True, type="primary"):
+                    st.session_state.selected_key = "ロト6・7重複法"
+                    st.session_state.selected = strategy_loto67_overlap(analyzer, seed=seed)
+                    st.session_state.results = None
+
+        st.divider()
 
         if "results" not in st.session_state:
             st.session_state.results = None
@@ -507,7 +584,11 @@ def main() -> None:
             st.info("バックテストに十分なデータがありません。")
 
     with tab_history:
-        _render_history_tab(analyzer)
+        hist_l6, hist_l7 = st.tabs(["🎱 ロト6", "🎰 ロト7"])
+        with hist_l6:
+            _render_history_tab(analyzer)
+        with hist_l7:
+            _render_loto7_history_tab()
 
 
 def _draw_to_row(d) -> dict:
@@ -604,6 +685,127 @@ def _render_history_tab(analyzer: Loto6Analyzer) -> None:
             file_name="loto6_history.csv",
             mime="text/csv",
             use_container_width=True,
+        )
+    else:
+        st.info("条件に一致するデータがありません。")
+
+
+def _draw_to_row_l7(d) -> dict:
+    return {
+        "回": d.round_num,
+        "日付": d.date,
+        "第1": f"{d.numbers[0]:02d}",
+        "第2": f"{d.numbers[1]:02d}",
+        "第3": f"{d.numbers[2]:02d}",
+        "第4": f"{d.numbers[3]:02d}",
+        "第5": f"{d.numbers[4]:02d}",
+        "第6": f"{d.numbers[5]:02d}",
+        "第7": f"{d.numbers[6]:02d}",
+        "B1": f"{d.bonus[0]:02d}",
+        "B2": f"{d.bonus[1]:02d}",
+        "合計": sum(d.numbers),
+    }
+
+
+def _render_loto7_history_tab() -> None:
+    st.subheader("📚 ロト7 過去の当選番号")
+
+    draws = load_loto7_draws()
+    if not draws:
+        st.error("ロト7データを取得できませんでした。ネットワーク接続を確認してください。")
+        if st.button("🔄 再取得", key="l7_retry"):
+            try:
+                from loto6_predictor.loto7_data import download_csv
+                download_csv()
+                st.rerun()
+            except Exception as e:
+                st.error(f"取得失敗: {e}")
+        return
+
+    status = get_loto7_data_status()
+    latest = draws[-1]
+
+    info1, info2, info3 = st.columns(3)
+    with info1:
+        st.metric("保存データ", f"{len(draws)} 回分")
+    with info2:
+        st.metric("最新", f"第 {latest.round_num} 回")
+    with info3:
+        st.metric("ファイル更新", status.get("updated_at", "-"))
+
+    st.caption(f"保存場所: `{LOTO7_DATA_PATH}` ｜ 取得元: loto7.thekyo.jp")
+
+    st.markdown("#### 📋 最新当選番号")
+    render_balls(list(latest.numbers))
+    st.caption(
+        f"ボーナス数字: **{latest.bonus[0]:02d}** / **{latest.bonus[1]:02d}** ｜ "
+        f"抽選日: {latest.date}"
+    )
+
+    st.divider()
+
+    filter1, filter2, filter3 = st.columns(3)
+    with filter1:
+        sort_order = st.selectbox("表示順", ["新しい順", "古い順"], key="l7_hist_sort")
+    with filter2:
+        show_count = st.selectbox("表示件数", [20, 50, 100, 200, 500], index=1, key="l7_hist_count")
+    with filter3:
+        search_nums = st.multiselect(
+            "含む数字で絞込",
+            options=list(range(1, 38)),
+            format_func=lambda x: f"{x:02d}",
+            key="l7_hist_nums",
+        )
+
+    max_round = latest.round_num
+    round_from, round_to = st.slider(
+        "回数の範囲",
+        min_value=1,
+        max_value=max_round,
+        value=(max(1, max_round - 99), max_round),
+        key="l7_hist_range",
+    )
+
+    filtered = [d for d in draws if round_from <= d.round_num <= round_to]
+    if search_nums:
+        nums_set = set(search_nums)
+        filtered = [
+            d for d in filtered
+            if nums_set & set(d.numbers) or nums_set & set(d.bonus)
+        ]
+
+    filtered.sort(key=lambda d: d.round_num, reverse=(sort_order == "新しい順"))
+    total_filtered = len(filtered)
+    filtered = filtered[:show_count]
+
+    st.markdown(
+        f"**表示: {len(filtered)} 件**（条件に一致: {total_filtered} 件 / 全 {len(draws)} 件）"
+    )
+
+    if filtered:
+        df = pd.DataFrame([_draw_to_row_l7(d) for d in filtered])
+        st.dataframe(df, hide_index=True, use_container_width=True, height=400)
+
+        if len(filtered) == 1:
+            d = filtered[0]
+            st.markdown("**当選番号**")
+            render_balls(list(d.numbers))
+            st.caption(f"ボーナス: **{d.bonus[0]:02d}** / **{d.bonus[1]:02d}**")
+
+        csv_text = "回,日付,第1,第2,第3,第4,第5,第6,第7,B1,B2,合計\n"
+        csv_text += "\n".join(
+            f"{d.round_num},{d.date},"
+            + ",".join(f"{n:02d}" for n in d.numbers)
+            + f",{d.bonus[0]:02d},{d.bonus[1]:02d},{sum(d.numbers)}"
+            for d in filtered
+        )
+        st.download_button(
+            "📥 表示中のデータをCSVダウンロード",
+            data=csv_text.encode("utf-8-sig"),
+            file_name="loto7_history.csv",
+            mime="text/csv",
+            use_container_width=True,
+            key="l7_csv_dl",
         )
     else:
         st.info("条件に一致するデータがありません。")
