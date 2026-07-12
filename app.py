@@ -66,61 +66,317 @@ st.set_page_config(
 st.markdown(
     """
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    :root {
+        --apple-bg: #f5f5f7;
+        --apple-card: rgba(255, 255, 255, 0.78);
+        --apple-text: #1d1d1f;
+        --apple-secondary: #86868b;
+        --apple-blue: #007aff;
+        --apple-blue-hover: #0071e3;
+        --apple-border: rgba(0, 0, 0, 0.06);
+        --apple-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+        --apple-radius: 18px;
+        --apple-ball: linear-gradient(145deg, #ff6b6b 0%, #e03131 100%);
+    }
+
+    .stApp {
+        background: var(--apple-bg);
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Hiragino Sans", sans-serif;
+        color: var(--apple-text);
+    }
+
+    [data-testid="stSidebar"] {
+        background: rgba(255, 255, 255, 0.72) !important;
+        backdrop-filter: saturate(180%) blur(20px);
+        -webkit-backdrop-filter: saturate(180%) blur(20px);
+        border-right: 1px solid var(--apple-border);
+    }
+
+    [data-testid="stSidebar"] .block-container {
+        padding-top: 1.5rem;
+    }
+
+    .main .block-container {
+        padding-top: 2rem;
+        max-width: 1100px;
+    }
+
+    h1, h2, h3 {
+        font-weight: 600 !important;
+        letter-spacing: -0.02em;
+        color: var(--apple-text) !important;
+    }
+
+    .main-title {
+        text-align: center;
+        font-size: 2rem !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.03em;
+        color: var(--apple-text) !important;
+        margin-bottom: 0.25rem;
+    }
+
+    [data-testid="stMetric"] {
+        background: var(--apple-card);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--apple-border);
+        border-radius: var(--apple-radius);
+        padding: 16px 20px;
+        box-shadow: var(--apple-shadow);
+    }
+
+    [data-testid="stMetricLabel"] {
+        font-size: 0.75rem !important;
+        font-weight: 500 !important;
+        color: var(--apple-secondary) !important;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    [data-testid="stMetricValue"] {
+        font-size: 1.5rem !important;
+        font-weight: 600 !important;
+        letter-spacing: -0.02em;
+        color: var(--apple-text) !important;
+    }
+
+    .stButton > button {
+        border-radius: 980px !important;
+        border: none !important;
+        background: rgba(0, 0, 0, 0.05) !important;
+        color: var(--apple-text) !important;
+        font-weight: 500 !important;
+        font-size: 0.875rem !important;
+        padding: 0.5rem 1.25rem !important;
+        transition: all 0.2s ease !important;
+        box-shadow: none !important;
+    }
+
+    .stButton > button:hover {
+        background: rgba(0, 0, 0, 0.08) !important;
+        transform: scale(1.02);
+    }
+
+    .stButton > button[kind="primary"],
+    .stButton > button[data-testid="baseButton-primary"] {
+        background: var(--apple-blue) !important;
+        color: white !important;
+    }
+
+    .stButton > button[kind="primary"]:hover,
+    .stButton > button[data-testid="baseButton-primary"]:hover {
+        background: var(--apple-blue-hover) !important;
+    }
+
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background: rgba(0, 0, 0, 0.04);
+        border-radius: 12px;
+        padding: 4px;
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        border-radius: 10px !important;
+        font-weight: 500 !important;
+        color: var(--apple-secondary) !important;
+        background: transparent !important;
+    }
+
+    .stTabs [aria-selected="true"] {
+        background: white !important;
+        color: var(--apple-text) !important;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important;
+    }
+
+    .stExpander {
+        background: var(--apple-card) !important;
+        border: 1px solid var(--apple-border) !important;
+        border-radius: var(--apple-radius) !important;
+        box-shadow: var(--apple-shadow) !important;
+        backdrop-filter: blur(20px);
+    }
+
+    [data-testid="stDataFrame"] {
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid var(--apple-border);
+    }
+
+    .stAlert {
+        border-radius: 14px !important;
+        border: none !important;
+    }
+
     .ball {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 52px;
-        height: 52px;
-        margin: 4px;
+        width: 48px;
+        height: 48px;
+        margin: 5px;
         border-radius: 50%;
-        background: linear-gradient(145deg, #ff6b6b, #c92a2a);
+        background: var(--apple-ball);
         color: white;
-        font-size: 20px;
-        font-weight: bold;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        box-shadow: 0 4px 12px rgba(224, 49, 49, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
     }
-    .ball-row { text-align: center; padding: 12px 0; }
+
+    .ball-row {
+        text-align: center;
+        padding: 16px 0;
+    }
+
     .result-box {
-        background: #f8f9fa;
-        border: 2px solid #dee2e6;
-        border-radius: 12px;
-        padding: 16px;
-        margin: 8px 0;
+        background: var(--apple-card);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--apple-border);
+        border-radius: var(--apple-radius);
+        padding: 24px;
+        margin: 12px 0;
+        box-shadow: var(--apple-shadow);
     }
-    .main-title { text-align: center; color: #c92a2a; }
+
     .live-status {
-        background: linear-gradient(90deg, #e6fcf5, #d3f9d8);
-        border: 1px solid #8ce99a;
-        border-radius: 10px;
-        padding: 12px 16px;
-        margin: 8px 0 16px 0;
-        font-size: 0.95rem;
-        color: #2b8a3e;
+        background: rgba(255, 255, 255, 0.72);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(52, 199, 89, 0.25);
+        border-radius: var(--apple-radius);
+        padding: 14px 20px;
+        margin: 8px 0 20px 0;
+        font-size: 0.875rem;
+        color: #1d7a34;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
         flex-wrap: wrap;
+        box-shadow: var(--apple-shadow);
     }
+
     .pulse-dot {
-        width: 10px;
-        height: 10px;
-        background: #40c057;
+        width: 8px;
+        height: 8px;
+        background: #34c759;
         border-radius: 50%;
-        animation: pulse 1.5s ease-in-out infinite;
+        animation: pulse 2s ease-in-out infinite;
         flex-shrink: 0;
+        box-shadow: 0 0 8px rgba(52, 199, 89, 0.6);
     }
+
     @keyframes pulse {
         0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.5; transform: scale(1.3); }
+        50% { opacity: 0.6; transform: scale(1.2); }
     }
-    .live-status b { color: #087f5b; }
+
+    .live-status b { color: #1d7a34; font-weight: 600; }
+
     .sidebar-live {
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 10px;
-        margin-bottom: 10px;
-        font-size: 0.85rem;
+        background: rgba(0, 0, 0, 0.03);
+        border-radius: 14px;
+        padding: 14px;
+        margin-bottom: 12px;
+        font-size: 0.8125rem;
+        line-height: 1.5;
+        color: var(--apple-secondary);
+    }
+
+    .sidebar-live b { color: var(--apple-text); }
+
+    div[data-testid="stCaptionContainer"] p {
+        color: var(--apple-secondary) !important;
+        font-size: 0.8125rem !important;
+    }
+
+    hr {
+        border: none;
+        border-top: 1px solid var(--apple-border);
+        margin: 1.5rem 0;
+    }
+
+    /* Streamlit Cloud 向け追加スタイル */
+    header[data-testid="stHeader"] {
+        background: rgba(255, 255, 255, 0.72) !important;
+        backdrop-filter: saturate(180%) blur(20px);
+        border-bottom: 1px solid var(--apple-border);
+    }
+
+    #MainMenu, footer, [data-testid="stToolbar"] {
+        visibility: hidden;
+    }
+
+    [data-testid="stCode"] {
+        background: rgba(0, 0, 0, 0.03) !important;
+        border: 1px solid var(--apple-border) !important;
+        border-radius: 12px !important;
+        font-family: "SF Mono", "Menlo", monospace !important;
+    }
+
+    .stSelectbox > div > div,
+    .stMultiSelect > div > div,
+    .stNumberInput > div > div > input,
+    .stTextInput > div > div > input {
+        border-radius: 12px !important;
+        border: 1px solid var(--apple-border) !important;
+        background: white !important;
+        font-family: inherit !important;
+    }
+
+    [data-baseweb="select"] > div {
+        border-radius: 12px !important;
+        border: 1px solid var(--apple-border) !important;
+        background: white !important;
+    }
+
+    [data-testid="stNotification"]:not([kind="positive"]) {
+        border-radius: 14px !important;
+    }
+
+    div[data-testid="stSuccess"] {
+        background: rgba(52, 199, 89, 0.1) !important;
+        border: 1px solid rgba(52, 199, 89, 0.2) !important;
+        border-radius: 14px !important;
+        color: #1d7a34 !important;
+    }
+
+    div[data-testid="stInfo"] {
+        background: rgba(0, 122, 255, 0.08) !important;
+        border: 1px solid rgba(0, 122, 255, 0.15) !important;
+        border-radius: 14px !important;
+        color: var(--apple-blue) !important;
+    }
+
+    div[data-testid="stWarning"] {
+        background: rgba(255, 149, 0, 0.08) !important;
+        border: 1px solid rgba(255, 149, 0, 0.2) !important;
+        border-radius: 14px !important;
+    }
+
+  [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3 {
+        font-size: 1rem !important;
+    }
+
+    .stDownloadButton > button {
+        border-radius: 980px !important;
+        background: var(--apple-blue) !important;
+        color: white !important;
+        border: none !important;
+    }
+
+    [data-testid="stVerticalBlock"] > div:has(.result-box) {
+        border-radius: var(--apple-radius);
+    }
+
+    .hero-subtitle {
+        text-align: center;
+        color: var(--apple-secondary);
+        font-size: 0.9375rem;
+        margin-bottom: 1.5rem;
+        letter-spacing: -0.01em;
     }
     </style>
     """,
@@ -257,11 +513,17 @@ def main() -> None:
         except Exception:
             st.session_state.security_started = False
 
-    st.markdown('<h1 class="main-title">🎱 ロト6 予想番号ジェネレーター</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-title">ロト6 予想番号</h1>', unsafe_allow_html=True)
     if is_cloud_hosted():
-        st.caption("☁️ クラウド常時稼働 — PCの電源が切れていてもアクセスできます")
+        st.markdown(
+            '<p class="hero-subtitle">クラウド常時稼働 — いつでもどこからでもアクセスできます</p>',
+            unsafe_allow_html=True,
+        )
     else:
-        st.caption("過去の当選データをリアルタイム監視して予想番号を表示します")
+        st.markdown(
+            '<p class="hero-subtitle">過去の当選データをリアルタイム監視して予想番号を表示</p>',
+            unsafe_allow_html=True,
+        )
 
     _live_monitor_bar()
 
