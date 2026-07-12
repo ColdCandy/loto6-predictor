@@ -156,7 +156,7 @@ def save_urls(pages_url: str | None, streamlit_url: str, repo: str) -> None:
         "【高機能版 Streamlit（初回のみ設定）】",
         f"  1. ブラウザで {STREAMLIT_DEPLOY} を開く",
         f"  2. GitHub でログイン",
-        f"  3. リポジトリ: {repo} / メインファイル: app.py",
+        f"  3. リポジトリ: {repo} / メインファイル: streamlit_app.py",
         f"  4. Deploy をクリック → 常時 URL が発行されます",
         "",
         "データは抽選日を含め自動更新されます。",

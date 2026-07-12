@@ -40,6 +40,22 @@ def ensure_cloudflared() -> Path:
     return CLOUDFLARED_EXE
 
 
+STREAMLIT_ARGS = [
+    "--server.address",
+    "127.0.0.1",
+    "--server.port",
+    str(PORT),
+    "--browser.gatherUsageStats",
+    "false",
+    "--server.enableCORS",
+    "false",
+    "--server.enableXsrfProtection",
+    "false",
+    "--server.enableWebsocketCompression",
+    "false",
+]
+
+
 def start_streamlit() -> subprocess.Popen:
     return subprocess.Popen(
         [
@@ -47,13 +63,8 @@ def start_streamlit() -> subprocess.Popen:
             "-m",
             "streamlit",
             "run",
-            str(ROOT / "app.py"),
-            "--server.address",
-            "127.0.0.1",
-            "--server.port",
-            str(PORT),
-            "--browser.gatherUsageStats",
-            "false",
+            str(ROOT / "streamlit_app.py"),
+            *STREAMLIT_ARGS,
         ],
         cwd=ROOT,
         stdout=subprocess.DEVNULL,

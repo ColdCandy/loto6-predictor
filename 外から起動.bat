@@ -12,6 +12,9 @@ echo  表示されたURLをスマホに送るだけ！
 echo.
 echo  停止するとき → 接続停止.bat をダブルクリック
 echo.
+echo  ※ Connection error が出る場合:
+echo     常時アクセス開く.bat を使うと PCオフでも安定します
+echo.
 pip install -r requirements.txt -q
 python tools\start_remote_server.py
 pause

@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import random
 
-from datetime import timedelta
-
 import pandas as pd
 import streamlit as st
 
@@ -57,14 +55,18 @@ def _get_lan_ip() -> str | None:
     except OSError:
         return None
 
-st.set_page_config(
-    page_title="ロト6 予想番号",
-    page_icon="🎱",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
-
-inject_apple_theme()
+def _init_streamlit_ui() -> None:
+    """クラウド起動を安定させるため、最初の Streamlit 操作は main 内で1回だけ実行"""
+    if st.session_state.get("_ui_ready"):
+        return
+    st.set_page_config(
+        page_title="ロト6 予想番号",
+        page_icon="🎱",
+        layout="wide",
+        initial_sidebar_state="expanded",
+    )
+    inject_apple_theme()
+    st.session_state["_ui_ready"] = True
 
 
 @st.cache_data(ttl=30)
@@ -119,11 +121,6 @@ def _render_live_monitor_bar() -> None:
         )
 
 
-@st.fragment(run_every=timedelta(seconds=1))
-def _live_monitor_bar_fragment() -> None:
-    _render_live_monitor_bar()
-
-
 def _render_live_sidebar_panel() -> None:
     live = get_monitor_live_status()
     status = get_data_status()
@@ -160,23 +157,12 @@ def _render_live_sidebar_panel() -> None:
     st.markdown(html, unsafe_allow_html=True)
 
 
-@st.fragment(run_every=timedelta(seconds=1))
-def _live_sidebar_panel_fragment() -> None:
-    _render_live_sidebar_panel()
-
-
 def _show_live_monitor() -> None:
-    if is_cloud_hosted():
-        _render_live_monitor_bar()
-    else:
-        _live_monitor_bar_fragment()
+    _render_live_monitor_bar()
 
 
 def _show_live_sidebar() -> None:
-    if is_cloud_hosted():
-        _render_live_sidebar_panel()
-    else:
-        _live_sidebar_panel_fragment()
+    _render_live_sidebar_panel()
 
 
 def render_balls(numbers: list[int]) -> None:
@@ -215,6 +201,8 @@ def render_prediction(pred: dict) -> None:
 
 
 def main() -> None:
+    _init_streamlit_ui()
+
     if "security_started" not in st.session_state:
         try:
             if not is_cloud_hosted():
@@ -419,19 +407,16 @@ def main() -> None:
 
         if st.session_state.selected:
             st.markdown("### 🎯 予想結果")
-            st.markdown('<div class="result-box">', unsafe_allow_html=True)
-            render_prediction(st.session_state.selected)
-            st.markdown("</div>", unsafe_allow_html=True)
+            with st.container(border=True):
+                render_prediction(st.session_state.selected)
             nums = st.session_state.selected["numbers"]
             st.success(f"コピー用: {' '.join(f'{n:02d}' for n in sorted(nums))}")
 
         if st.session_state.results:
             st.markdown("### 📋 全手法の予想結果")
             for pred in st.session_state.results:
-                with st.container():
-                    st.markdown('<div class="result-box">', unsafe_allow_html=True)
+                with st.container(border=True):
                     render_prediction(pred)
-                    st.markdown("</div>", unsafe_allow_html=True)
 
         if not st.session_state.selected and not st.session_state.results:
             st.info("👆 上のボタンを押すと予想番号が表示されます")

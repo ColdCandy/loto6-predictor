@@ -1,4 +1,4 @@
-"""Streamlit Cloud 用エントリーポイント"""
+"""Streamlit Cloud 用エントリーポイント（メインファイルは必ずこれ）"""
 
 from __future__ import annotations
 
@@ -12,12 +12,21 @@ def _boot_error(exc: BaseException) -> None:
         st.set_page_config(page_title="ロト6 予想番号", page_icon="🎱", layout="wide")
     except Exception:
         pass
-    st.error("アプリの起動に失敗しました。30秒ほど待ってから再読み込みしてください。")
-    st.caption(
-        "Streamlit Cloud のメインファイルは **streamlit_app.py** に設定してください。"
-        " 改善しない場合は share.streamlit.io で Reboot app を実行してください。"
+    st.title("ロト6 予想番号")
+    st.error("アプリの起動に失敗しました。")
+    st.markdown(
+        """
+**すぐ使える代替URL（PCオフでもOK）**  
+https://coldcandy.github.io/loto6-predictor/
+
+**Streamlit版を直す手順**
+1. https://share.streamlit.io/ を開く
+2. アプリの設定で **Main file path** を `streamlit_app.py` にする
+3. **Reboot app** を押す
+4. 1分待ってから https://loto6-predictor-nmrmsaoqhebs2wxvbs6oin.streamlit.app/ を開く
+        """
     )
-    with st.expander("エラー詳細（開発者向け）"):
+    with st.expander("エラー詳細"):
         st.code("".join(traceback.format_exception(type(exc), exc, exc.__traceback__)))
 
 
