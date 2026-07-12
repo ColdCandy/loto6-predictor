@@ -350,7 +350,7 @@ function generateAll(analyzer, seed) {
 function renderBalls(nums) {
   return nums
     .sort((a, b) => a - b)
-    .map((n) => `<span class="ball">${String(n).padStart(2, "0")}</span>`)
+    .map((n, i) => `<span class="ball" style="animation-delay:${i * 2.78}ms">${String(n).padStart(2, "0")}</span>`)
     .join("");
 }
 
@@ -368,10 +368,13 @@ function renderBarChart(containerId, data, labelKey = "label", valueKey = "value
     </div>`
     )
     .join("");
+  if (window.UltraSmooth) {
+    requestAnimationFrame(() => UltraSmooth.animateBars(el));
+  }
 }
 
 function renderPrediction(container, pred) {
-  let html = `<div class="apple-result-box">
+  let html = `<div class="apple-result-box smooth-reveal">
     <h3>${pred.name}</h3>
     <p class="desc">${pred.description}</p>
     <div class="ball-row">${renderBalls(pred.numbers)}</div>
@@ -381,12 +384,15 @@ function renderPrediction(container, pred) {
   }
   html += "</div>";
   container.innerHTML = html;
+  if (window.UltraSmooth) {
+    UltraSmooth.enhanceBalls(container);
+  }
 }
 
 function renderAllPredictions(container, preds) {
   container.innerHTML = preds
     .map(
-      (pred) => `<div class="apple-result-box">
+      (pred) => `<div class="apple-result-box smooth-reveal">
       <h3>${pred.name}</h3>
       <p class="desc">${pred.description}</p>
       <div class="ball-row">${renderBalls(pred.numbers)}</div>
@@ -394,6 +400,7 @@ function renderAllPredictions(container, preds) {
     </div>`
     )
     .join("");
+  if (window.UltraSmooth) UltraSmooth.enhanceBalls(container);
 }
 
 let analyzer = null;
@@ -409,7 +416,16 @@ function initApp() {
   analyzer = new Loto6Analyzer(LOTODATA.draws);
   const latest = analyzer.latest;
 
-  document.getElementById("meta-rounds").textContent = `${analyzer.totalRounds} 回`;
+  if (window.UltraSmooth) {
+    UltraSmooth.enhanceBalls(document);
+    const roundsEl = document.getElementById("meta-rounds");
+    if (roundsEl) {
+      roundsEl.textContent = "0 回";
+      UltraSmooth.animateValue(roundsEl, analyzer.totalRounds, 480, " 回");
+    }
+  } else {
+    document.getElementById("meta-rounds").textContent = `${analyzer.totalRounds} 回`;
+  }
   document.getElementById("meta-latest-round").textContent = latest ? `第 ${latest.r} 回` : "-";
   document.getElementById("meta-latest-date").textContent = latest ? latest.d : "-";
   document.getElementById("meta-updated").textContent = LOTODATA.updated || "-";
@@ -458,7 +474,9 @@ function initApp() {
       document.querySelectorAll(".apple-tab").forEach((t) => t.classList.remove("active"));
       document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
       tab.classList.add("active");
-      document.getElementById(tab.dataset.panel).classList.add("active");
+      const panel = document.getElementById(tab.dataset.panel);
+      panel.classList.add("active");
+      if (window.UltraSmooth) UltraSmooth.smoothTabSwitch(panel);
       if (tab.dataset.panel === "panel-stats") renderStats();
     };
   });

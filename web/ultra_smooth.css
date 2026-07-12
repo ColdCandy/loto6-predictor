@@ -1,0 +1,219 @@
+/* 360Hz級 ウルトラスムーズ — GPU加速・ProMotion風 */
+
+:root {
+  --hz-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --hz-spring-snappy: cubic-bezier(0.22, 1, 0.36, 1);
+  --hz-micro: 0.08s;
+  --hz-fast: 0.14s;
+  --hz-normal: 0.22s;
+  --hz-stagger: 2.78ms;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .stApp,
+  body.apple-body {
+    scroll-behavior: smooth;
+  }
+
+  .stApp::before,
+  body.apple-body::before {
+    animation: meshDrift 24s linear infinite;
+    will-change: transform, opacity;
+  }
+
+  .main .block-container,
+  .apple-container {
+    animation: pageReveal 0.42s var(--hz-spring) both;
+  }
+
+  [data-testid="stMetric"],
+  .apple-metric,
+  .apple-card,
+  .result-box,
+  .apple-result-box,
+  .stExpander,
+  .live-status {
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    will-change: transform, box-shadow;
+  }
+
+  .stButton > button,
+  .stDownloadButton > button,
+  .apple-btn,
+  .apple-tab,
+  .stTabs [data-baseweb="tab"] {
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    transition:
+      transform var(--hz-micro) var(--hz-spring-snappy),
+      background-color var(--hz-fast) var(--hz-spring),
+      box-shadow var(--hz-fast) var(--hz-spring),
+      color var(--hz-fast) var(--hz-spring) !important;
+  }
+
+  .stButton > button:hover,
+  .apple-btn:hover {
+    transform: translate3d(0, -1px, 0) scale(1.015);
+  }
+
+  .stButton > button:active,
+  .apple-btn:active {
+    transform: translate3d(0, 0, 0) scale(0.975);
+    transition-duration: 0.05s !important;
+  }
+
+  [data-testid="stMetric"],
+  .apple-metric {
+    transition:
+      transform var(--hz-normal) var(--hz-spring),
+      box-shadow var(--hz-normal) var(--hz-spring) !important;
+  }
+
+  [data-testid="stMetric"]:hover,
+  .apple-metric:hover {
+    transform: translate3d(0, -3px, 0);
+  }
+
+  .ball {
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+    animation: ballUltra 0.38s var(--hz-spring) backwards;
+    transition: transform var(--hz-micro) var(--hz-spring-snappy);
+  }
+
+  .ball:nth-child(1) { animation-delay: calc(var(--hz-stagger) * 0); }
+  .ball:nth-child(2) { animation-delay: calc(var(--hz-stagger) * 1); }
+  .ball:nth-child(3) { animation-delay: calc(var(--hz-stagger) * 2); }
+  .ball:nth-child(4) { animation-delay: calc(var(--hz-stagger) * 3); }
+  .ball:nth-child(5) { animation-delay: calc(var(--hz-stagger) * 4); }
+  .ball:nth-child(6) { animation-delay: calc(var(--hz-stagger) * 5); }
+  .ball:nth-child(7) { animation-delay: calc(var(--hz-stagger) * 6); }
+
+  .ball:hover {
+    transform: translate3d(0, -2px, 0) scale(1.1);
+  }
+
+  .tab-panel.active,
+  .apple-result-box,
+  .result-box {
+    animation: contentSlide 0.32s var(--hz-spring) both;
+  }
+
+  .apple-bar-fill,
+  .bar-fill {
+    transition: none;
+    will-change: width;
+  }
+
+  .hero-wrap {
+    animation: heroFade 0.5s var(--hz-spring) both;
+  }
+
+  .hero-badge {
+    animation: heroFade 0.55s var(--hz-spring) 0.05s both;
+  }
+
+  .main-title {
+    animation: heroFade 0.6s var(--hz-spring) 0.08s both;
+  }
+
+  .hero-subtitle {
+    animation: heroFade 0.65s var(--hz-spring) 0.12s both;
+  }
+
+  .pulse-dot {
+    animation: pulseUltra 1.8s var(--hz-spring) infinite;
+  }
+
+  .smooth-reveal {
+    animation: contentSlide 0.36s var(--hz-spring) both;
+  }
+
+  .smooth-count {
+    font-variant-numeric: tabular-nums;
+    transition: opacity var(--hz-fast) var(--hz-spring);
+  }
+}
+
+@keyframes meshDrift {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+  }
+  33% {
+    transform: translate3d(0.4%, -0.3%, 0) scale(1.01);
+    opacity: 0.98;
+  }
+  66% {
+    transform: translate3d(-0.3%, 0.2%, 0) scale(1.005);
+    opacity: 1;
+  }
+}
+
+@keyframes pageReveal {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes heroFade {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes ballUltra {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0) scale(0.45);
+  }
+  55% {
+    opacity: 1;
+    transform: translate3d(0, -3px, 0) scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes contentSlide {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes pulseUltra {
+  0%, 100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    box-shadow: 0 0 8px rgba(52, 199, 89, 0.45);
+  }
+  50% {
+    opacity: 0.65;
+    transform: translate3d(0, 0, 0) scale(1.35);
+    box-shadow: 0 0 14px rgba(52, 199, 89, 0.7);
+  }
+}

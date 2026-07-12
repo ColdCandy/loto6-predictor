@@ -180,7 +180,10 @@ def _show_live_sidebar() -> None:
 
 
 def render_balls(numbers: list[int]) -> None:
-    balls = "".join(f'<span class="ball">{n:02d}</span>' for n in sorted(numbers))
+    balls = "".join(
+        f'<span class="ball" style="animation-delay:{i * 2.78}ms">{n:02d}</span>'
+        for i, n in enumerate(sorted(numbers))
+    )
     st.markdown(f'<div class="ball-row">{balls}</div>', unsafe_allow_html=True)
 
 

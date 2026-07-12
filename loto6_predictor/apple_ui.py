@@ -5,12 +5,16 @@ from __future__ import annotations
 from pathlib import Path
 
 THEME_CSS_PATH = Path(__file__).resolve().parent.parent / "web" / "apple_theme.css"
+ULTRA_CSS_PATH = Path(__file__).resolve().parent.parent / "web" / "ultra_smooth.css"
 
 
 def load_apple_css() -> str:
+    parts: list[str] = []
     if THEME_CSS_PATH.exists():
-        return THEME_CSS_PATH.read_text(encoding="utf-8")
-    return ""
+        parts.append(THEME_CSS_PATH.read_text(encoding="utf-8"))
+    if ULTRA_CSS_PATH.exists():
+        parts.append(ULTRA_CSS_PATH.read_text(encoding="utf-8"))
+    return "\n".join(parts)
 
 
 def inject_apple_theme() -> None:

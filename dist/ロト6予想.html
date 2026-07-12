@@ -631,6 +631,226 @@ th {
 .copy-text { font-size: 0.8125rem; color: var(--system-green); margin-top: 10px; font-weight: 500; }
 .hint { text-align: center; color: var(--label-secondary); padding: 32px; font-size: 0.9375rem; }
 
+/* 360Hz級 ウルトラスムーズ — GPU加速・ProMotion風 */
+
+:root {
+  --hz-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --hz-spring-snappy: cubic-bezier(0.22, 1, 0.36, 1);
+  --hz-micro: 0.08s;
+  --hz-fast: 0.14s;
+  --hz-normal: 0.22s;
+  --hz-stagger: 2.78ms;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .stApp,
+  body.apple-body {
+    scroll-behavior: smooth;
+  }
+
+  .stApp::before,
+  body.apple-body::before {
+    animation: meshDrift 24s linear infinite;
+    will-change: transform, opacity;
+  }
+
+  .main .block-container,
+  .apple-container {
+    animation: pageReveal 0.42s var(--hz-spring) both;
+  }
+
+  [data-testid="stMetric"],
+  .apple-metric,
+  .apple-card,
+  .result-box,
+  .apple-result-box,
+  .stExpander,
+  .live-status {
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    will-change: transform, box-shadow;
+  }
+
+  .stButton > button,
+  .stDownloadButton > button,
+  .apple-btn,
+  .apple-tab,
+  .stTabs [data-baseweb="tab"] {
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    transition:
+      transform var(--hz-micro) var(--hz-spring-snappy),
+      background-color var(--hz-fast) var(--hz-spring),
+      box-shadow var(--hz-fast) var(--hz-spring),
+      color var(--hz-fast) var(--hz-spring) !important;
+  }
+
+  .stButton > button:hover,
+  .apple-btn:hover {
+    transform: translate3d(0, -1px, 0) scale(1.015);
+  }
+
+  .stButton > button:active,
+  .apple-btn:active {
+    transform: translate3d(0, 0, 0) scale(0.975);
+    transition-duration: 0.05s !important;
+  }
+
+  [data-testid="stMetric"],
+  .apple-metric {
+    transition:
+      transform var(--hz-normal) var(--hz-spring),
+      box-shadow var(--hz-normal) var(--hz-spring) !important;
+  }
+
+  [data-testid="stMetric"]:hover,
+  .apple-metric:hover {
+    transform: translate3d(0, -3px, 0);
+  }
+
+  .ball {
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+    animation: ballUltra 0.38s var(--hz-spring) backwards;
+    transition: transform var(--hz-micro) var(--hz-spring-snappy);
+  }
+
+  .ball:nth-child(1) { animation-delay: calc(var(--hz-stagger) * 0); }
+  .ball:nth-child(2) { animation-delay: calc(var(--hz-stagger) * 1); }
+  .ball:nth-child(3) { animation-delay: calc(var(--hz-stagger) * 2); }
+  .ball:nth-child(4) { animation-delay: calc(var(--hz-stagger) * 3); }
+  .ball:nth-child(5) { animation-delay: calc(var(--hz-stagger) * 4); }
+  .ball:nth-child(6) { animation-delay: calc(var(--hz-stagger) * 5); }
+  .ball:nth-child(7) { animation-delay: calc(var(--hz-stagger) * 6); }
+
+  .ball:hover {
+    transform: translate3d(0, -2px, 0) scale(1.1);
+  }
+
+  .tab-panel.active,
+  .apple-result-box,
+  .result-box {
+    animation: contentSlide 0.32s var(--hz-spring) both;
+  }
+
+  .apple-bar-fill,
+  .bar-fill {
+    transition: none;
+    will-change: width;
+  }
+
+  .hero-wrap {
+    animation: heroFade 0.5s var(--hz-spring) both;
+  }
+
+  .hero-badge {
+    animation: heroFade 0.55s var(--hz-spring) 0.05s both;
+  }
+
+  .main-title {
+    animation: heroFade 0.6s var(--hz-spring) 0.08s both;
+  }
+
+  .hero-subtitle {
+    animation: heroFade 0.65s var(--hz-spring) 0.12s both;
+  }
+
+  .pulse-dot {
+    animation: pulseUltra 1.8s var(--hz-spring) infinite;
+  }
+
+  .smooth-reveal {
+    animation: contentSlide 0.36s var(--hz-spring) both;
+  }
+
+  .smooth-count {
+    font-variant-numeric: tabular-nums;
+    transition: opacity var(--hz-fast) var(--hz-spring);
+  }
+}
+
+@keyframes meshDrift {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+  }
+  33% {
+    transform: translate3d(0.4%, -0.3%, 0) scale(1.01);
+    opacity: 0.98;
+  }
+  66% {
+    transform: translate3d(-0.3%, 0.2%, 0) scale(1.005);
+    opacity: 1;
+  }
+}
+
+@keyframes pageReveal {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes heroFade {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes ballUltra {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0) scale(0.45);
+  }
+  55% {
+    opacity: 1;
+    transform: translate3d(0, -3px, 0) scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes contentSlide {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes pulseUltra {
+  0%, 100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    box-shadow: 0 0 8px rgba(52, 199, 89, 0.45);
+  }
+  50% {
+    opacity: 0.65;
+    transform: translate3d(0, 0, 0) scale(1.35);
+    box-shadow: 0 0 14px rgba(52, 199, 89, 0.7);
+  }
+}
+
 </style>
 </head>
 <body class="apple-body">
@@ -1056,7 +1276,7 @@ function generateAll(analyzer, seed) {
 function renderBalls(nums) {
   return nums
     .sort((a, b) => a - b)
-    .map((n) => `<span class="ball">${String(n).padStart(2, "0")}</span>`)
+    .map((n, i) => `<span class="ball" style="animation-delay:${i * 2.78}ms">${String(n).padStart(2, "0")}</span>`)
     .join("");
 }
 
@@ -1074,10 +1294,13 @@ function renderBarChart(containerId, data, labelKey = "label", valueKey = "value
     </div>`
     )
     .join("");
+  if (window.UltraSmooth) {
+    requestAnimationFrame(() => UltraSmooth.animateBars(el));
+  }
 }
 
 function renderPrediction(container, pred) {
-  let html = `<div class="apple-result-box">
+  let html = `<div class="apple-result-box smooth-reveal">
     <h3>${pred.name}</h3>
     <p class="desc">${pred.description}</p>
     <div class="ball-row">${renderBalls(pred.numbers)}</div>
@@ -1087,12 +1310,15 @@ function renderPrediction(container, pred) {
   }
   html += "</div>";
   container.innerHTML = html;
+  if (window.UltraSmooth) {
+    UltraSmooth.enhanceBalls(container);
+  }
 }
 
 function renderAllPredictions(container, preds) {
   container.innerHTML = preds
     .map(
-      (pred) => `<div class="apple-result-box">
+      (pred) => `<div class="apple-result-box smooth-reveal">
       <h3>${pred.name}</h3>
       <p class="desc">${pred.description}</p>
       <div class="ball-row">${renderBalls(pred.numbers)}</div>
@@ -1100,6 +1326,7 @@ function renderAllPredictions(container, preds) {
     </div>`
     )
     .join("");
+  if (window.UltraSmooth) UltraSmooth.enhanceBalls(container);
 }
 
 let analyzer = null;
@@ -1115,7 +1342,16 @@ function initApp() {
   analyzer = new Loto6Analyzer(LOTODATA.draws);
   const latest = analyzer.latest;
 
-  document.getElementById("meta-rounds").textContent = `${analyzer.totalRounds} 回`;
+  if (window.UltraSmooth) {
+    UltraSmooth.enhanceBalls(document);
+    const roundsEl = document.getElementById("meta-rounds");
+    if (roundsEl) {
+      roundsEl.textContent = "0 回";
+      UltraSmooth.animateValue(roundsEl, analyzer.totalRounds, 480, " 回");
+    }
+  } else {
+    document.getElementById("meta-rounds").textContent = `${analyzer.totalRounds} 回`;
+  }
   document.getElementById("meta-latest-round").textContent = latest ? `第 ${latest.r} 回` : "-";
   document.getElementById("meta-latest-date").textContent = latest ? latest.d : "-";
   document.getElementById("meta-updated").textContent = LOTODATA.updated || "-";
@@ -1164,7 +1400,9 @@ function initApp() {
       document.querySelectorAll(".apple-tab").forEach((t) => t.classList.remove("active"));
       document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
       tab.classList.add("active");
-      document.getElementById(tab.dataset.panel).classList.add("active");
+      const panel = document.getElementById(tab.dataset.panel);
+      panel.classList.add("active");
+      if (window.UltraSmooth) UltraSmooth.smoothTabSwitch(panel);
       if (tab.dataset.panel === "panel-stats") renderStats();
     };
   });
@@ -1205,6 +1443,84 @@ function renderStats() {
 }
 
 document.addEventListener("DOMContentLoaded", initApp);
+
+</script><script>
+/**
+ * 360Hz級スムーズ — requestAnimationFrame 補間
+ */
+(function () {
+  const SPRING = (t) => 1 - Math.pow(1 - t, 3);
+
+  function animateValue(el, to, duration = 380, suffix = "") {
+    if (!el) return;
+    const from = parseFloat(String(el.dataset.value || el.textContent)) || 0;
+    if (Math.abs(from - to) < 0.01) {
+      el.textContent = `${to}${suffix}`;
+      return;
+    }
+    const start = performance.now();
+    el.classList.add("smooth-count");
+
+    function frame(now) {
+      const p = Math.min(1, (now - start) / duration);
+      const v = from + (to - from) * SPRING(p);
+      el.textContent = `${Math.round(v)}${suffix}`;
+      if (p < 1) requestAnimationFrame(frame);
+      else el.dataset.value = String(to);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function animateBars(container) {
+    if (!container) return;
+    container.querySelectorAll(".apple-bar-fill, .bar-fill").forEach((bar, i) => {
+      const target = bar.style.width;
+      bar.style.width = "0%";
+      const delay = i * 2.78;
+      setTimeout(() => {
+        const start = performance.now();
+        const targetNum = parseFloat(target) || 0;
+        function frame(now) {
+          const p = Math.min(1, (now - start) / 420);
+          bar.style.width = `${targetNum * SPRING(p)}%`;
+          if (p < 1) requestAnimationFrame(frame);
+          else bar.style.width = target;
+        }
+        requestAnimationFrame(frame);
+      }, delay);
+    });
+  }
+
+  function enhanceBalls(root) {
+    (root || document).querySelectorAll(".ball-row").forEach((row) => {
+      row.querySelectorAll(".ball").forEach((ball, i) => {
+        ball.style.animationDelay = `${i * 2.78}ms`;
+      });
+    });
+  }
+
+  function smoothTabSwitch(panel) {
+    if (!panel) return;
+    panel.style.opacity = "0";
+    panel.style.transform = "translate3d(0, 6px, 0)";
+    requestAnimationFrame(() => {
+      panel.style.transition = "opacity 0.22s cubic-bezier(0.16,1,0.3,1), transform 0.22s cubic-bezier(0.16,1,0.3,1)";
+      panel.style.opacity = "1";
+      panel.style.transform = "translate3d(0, 0, 0)";
+    });
+  }
+
+  window.UltraSmooth = {
+    animateValue,
+    animateBars,
+    enhanceBalls,
+    smoothTabSwitch,
+  };
+
+  document.addEventListener("DOMContentLoaded", () => {
+    enhanceBalls(document);
+  });
+})();
 
 </script>
 </body>
