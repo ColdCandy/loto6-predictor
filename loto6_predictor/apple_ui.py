@@ -16,8 +16,12 @@ def load_apple_css() -> str:
 def inject_apple_theme() -> None:
     import streamlit as st
 
-    css = load_apple_css()
-    st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
+    try:
+        css = load_apple_css()
+        if css:
+            st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
+    except Exception:
+        pass
 
 
 def render_hero(*, cloud: bool = False) -> None:
