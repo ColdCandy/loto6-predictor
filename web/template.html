@@ -2,286 +2,61 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ロト6">
+  <meta name="theme-color" content="#007aff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0a84ff" media="(prefers-color-scheme: dark)">
+  <meta name="format-detection" content="telephone=no">
   <title>ロト6 予想番号</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --apple-bg: #f5f5f7;
-      --apple-card: rgba(255, 255, 255, 0.78);
-      --apple-text: #1d1d1f;
-      --apple-secondary: #86868b;
-      --apple-blue: #007aff;
-      --apple-border: rgba(0, 0, 0, 0.06);
-      --apple-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
-      --apple-radius: 18px;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Hiragino Sans", sans-serif;
-      background: var(--apple-bg);
-      color: var(--apple-text);
-      min-height: 100vh;
-      padding: 24px 20px 48px;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    .container { max-width: 900px; margin: 0 auto; }
-
-    h1 {
-      text-align: center;
-      font-size: 2rem;
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      margin-bottom: 6px;
-      color: var(--apple-text);
-    }
-
-    .subtitle {
-      text-align: center;
-      color: var(--apple-secondary);
-      font-size: 0.9375rem;
-      font-weight: 400;
-      margin-bottom: 24px;
-    }
-
-    .notice {
-      background: var(--apple-card);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--apple-border);
-      border-radius: var(--apple-radius);
-      padding: 14px 18px;
-      font-size: 0.8125rem;
-      color: var(--apple-secondary);
-      margin-bottom: 20px;
-      box-shadow: var(--apple-shadow);
-      line-height: 1.5;
-    }
-
-    .metrics {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .metric {
-      background: var(--apple-card);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--apple-border);
-      border-radius: var(--apple-radius);
-      padding: 16px;
-      text-align: center;
-      box-shadow: var(--apple-shadow);
-    }
-
-    .metric .label {
-      font-size: 0.6875rem;
-      font-weight: 500;
-      color: var(--apple-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin-bottom: 4px;
-    }
-
-    .metric .value {
-      font-size: 1.375rem;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-      color: var(--apple-text);
-    }
-
-    .card {
-      background: var(--apple-card);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--apple-border);
-      border-radius: var(--apple-radius);
-      padding: 22px;
-      box-shadow: var(--apple-shadow);
-      margin-bottom: 16px;
-    }
-
-    .card h2 {
-      font-size: 1.0625rem;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-      margin-bottom: 14px;
-      color: var(--apple-text);
-    }
-
-    .ball {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 44px;
-      height: 44px;
-      margin: 4px;
-      border-radius: 50%;
-      background: linear-gradient(145deg, #ff6b6b 0%, #e03131 100%);
-      color: white;
-      font-size: 15px;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-      box-shadow: 0 4px 12px rgba(224, 49, 49, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
-    }
-
-    @media (max-width: 480px) { .ball { width: 40px; height: 40px; font-size: 14px; } }
-
-    .ball-row { text-align: center; padding: 12px 0; }
-
-    .tabs {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 16px;
-      background: rgba(0, 0, 0, 0.04);
-      border-radius: 12px;
-      padding: 4px;
-    }
-
-    .tab {
-      flex: 1;
-      min-width: 120px;
-      padding: 10px 14px;
-      border: none;
-      border-radius: 10px;
-      background: transparent;
-      cursor: pointer;
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: var(--apple-secondary);
-      transition: all 0.2s ease;
-      font-family: inherit;
-    }
-
-    .tab:hover { color: var(--apple-text); }
-
-    .tab.active {
-      background: white;
-      color: var(--apple-text);
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    }
-
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
-
-    .btn-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-
-    .btn {
-      padding: 11px 14px;
-      border: none;
-      border-radius: 980px;
-      background: rgba(0, 0, 0, 0.05);
-      cursor: pointer;
-      font-size: 0.8125rem;
-      font-weight: 500;
-      color: var(--apple-text);
-      transition: all 0.2s ease;
-      font-family: inherit;
-    }
-
-    .btn:hover {
-      background: rgba(0, 0, 0, 0.08);
-      transform: scale(1.02);
-    }
-
-    .btn-primary {
-      background: var(--apple-blue);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: #0071e3;
-    }
-
-    .action-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
-    .action-row .btn { flex: 1; min-width: 140px; }
-
-    .result-box {
-      background: rgba(0, 0, 0, 0.02);
-      border: 1px solid var(--apple-border);
-      border-radius: 14px;
-      padding: 18px;
-      margin-bottom: 12px;
-    }
-
-    .result-box h3 { font-size: 0.9375rem; font-weight: 600; margin-bottom: 4px; }
-    .result-box .desc { font-size: 0.8125rem; color: var(--apple-secondary); margin-bottom: 10px; line-height: 1.4; }
-    .copy-text { font-size: 0.8125rem; color: #34c759; margin-top: 10px; font-weight: 500; }
-    .eliminated { font-size: 0.75rem; color: var(--apple-secondary); margin-top: 6px; }
-    .hint { text-align: center; color: var(--apple-secondary); padding: 32px; font-size: 0.9375rem; }
-
-    .bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 0.8125rem; }
-    .bar-label { width: 36px; text-align: right; flex-shrink: 0; font-weight: 500; }
-    .bar-track { flex: 1; height: 8px; background: rgba(0,0,0,0.06); border-radius: 4px; overflow: hidden; }
-    .bar-fill { height: 100%; background: var(--apple-blue); border-radius: 4px; }
-    .bar-value { width: 32px; text-align: right; flex-shrink: 0; color: var(--apple-secondary); }
-
-    .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    @media (max-width: 600px) { .chart-grid { grid-template-columns: 1fr; } }
-
-    table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
-    th, td { padding: 10px 12px; border-bottom: 1px solid var(--apple-border); text-align: left; }
-    th { background: rgba(0,0,0,0.02); font-weight: 600; color: var(--apple-secondary); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; }
-
-    footer {
-      text-align: center;
-      font-size: 0.75rem;
-      color: var(--apple-secondary);
-      margin-top: 32px;
-      line-height: 1.6;
-    }
-  </style>
+  <!--APPLE_CSS_PLACEHOLDER-->
 </head>
-<body>
-  <div class="container">
-    <h1>ロト6 予想番号</h1>
-    <p class="subtitle">インストール不要・どこでも使える</p>
+<body class="apple-body">
+  <div class="apple-container">
+    <div class="hero-wrap">
+      <div class="hero-badge">● どこでも使える</div>
+      <h1 class="main-title">ロト6 予想番号</h1>
+      <p class="hero-subtitle">インストール不要 — iPhoneに追加してアプリのように使えます</p>
+    </div>
 
-    <div class="notice">
+    <div class="apple-notice">
       宝くじは完全なランダム抽選です。このツールは参考情報であり、当選を保証するものではありません。
     </div>
 
-    <div class="metrics">
-      <div class="metric"><div class="label">分析回数</div><div class="value" id="meta-rounds">-</div></div>
-      <div class="metric"><div class="label">最新回</div><div class="value" id="meta-latest-round">-</div></div>
-      <div class="metric"><div class="label">抽選日</div><div class="value" id="meta-latest-date">-</div></div>
-      <div class="metric"><div class="label">データ更新</div><div class="value" id="meta-updated" style="font-size:0.85rem">-</div></div>
+    <div class="apple-metrics">
+      <div class="apple-metric"><div class="label">分析回数</div><div class="value" id="meta-rounds">-</div></div>
+      <div class="apple-metric"><div class="label">最新回</div><div class="value" id="meta-latest-round">-</div></div>
+      <div class="apple-metric"><div class="label">抽選日</div><div class="value" id="meta-latest-date">-</div></div>
+      <div class="apple-metric"><div class="label">データ更新</div><div class="value" id="meta-updated" style="font-size:0.85rem">-</div></div>
     </div>
 
-    <div class="card">
+    <div class="apple-card">
       <h2>最新当選番号</h2>
       <div class="ball-row" id="latest-balls"></div>
-      <p style="text-align:center;font-size:0.875rem;color:var(--apple-secondary)" id="latest-bonus"></p>
+      <p style="text-align:center;font-size:0.875rem;color:var(--label-secondary)" id="latest-bonus"></p>
     </div>
 
-    <div class="tabs">
-      <button class="tab active" data-panel="panel-predict">予想番号</button>
-      <button class="tab" data-panel="panel-stats">統計グラフ</button>
+    <div class="apple-tabs">
+      <button class="apple-tab active" data-panel="panel-predict">予想番号</button>
+      <button class="apple-tab" data-panel="panel-stats">統計グラフ</button>
     </div>
 
     <div id="panel-predict" class="tab-panel active">
-      <div class="card">
+      <div class="apple-card">
         <h2>予想法を選んでください</h2>
-        <div class="action-row">
-          <button class="btn btn-primary" id="btn-recommend">おすすめ（複合スコア）</button>
-          <button class="btn" id="btn-all">全手法まとめて表示</button>
-          <button class="btn" id="btn-reroll">番号を再生成</button>
+        <div class="apple-action-row">
+          <button class="apple-btn apple-btn-primary" id="btn-recommend">おすすめ（複合スコア）</button>
+          <button class="apple-btn" id="btn-all">全手法まとめて表示</button>
+          <button class="apple-btn" id="btn-reroll">番号を再生成</button>
         </div>
-        <div class="btn-grid" id="strategy-buttons"></div>
+        <div class="apple-btn-grid" id="strategy-buttons"></div>
         <div id="results"><p class="hint">上のボタンを押すと予想番号が表示されます</p></div>
       </div>
     </div>
 
     <div id="panel-stats" class="tab-panel">
-      <div class="card">
+      <div class="apple-card">
         <h2>数字の出現傾向</h2>
         <div class="chart-grid">
           <div><h2 style="font-size:0.875rem;font-weight:600;margin-bottom:10px">全体 TOP20</h2><div id="chart-all"></div></div>
@@ -299,11 +74,11 @@
             <div id="chart-odd"></div>
           </div>
         </div>
-        <p id="sum-stats" style="margin-top:14px;font-size:0.8125rem;color:var(--apple-secondary)"></p>
+        <p id="sum-stats" style="margin-top:14px;font-size:0.8125rem;color:var(--label-secondary)"></p>
       </div>
     </div>
 
-    <footer>データ出典: loto6.thekyo.jp（個人利用）｜<!--DATA_SOURCE--></footer>
+    <footer class="apple-footer">データ出典: loto6.thekyo.jp（個人利用）｜<!--DATA_SOURCE--></footer>
   </div>
 
   <!--LOTODATA_PLACEHOLDER-->

@@ -8,3 +8,11 @@ backgroundColor = "#F5F5F7"
 secondaryBackgroundColor = "#FFFFFF"
 textColor = "#1D1D1F"
 font = "sans serif"
+
+[theme.dark]
+base = "dark"
+primaryColor = "#0A84FF"
+backgroundColor = "#000000"
+secondaryBackgroundColor = "#1C1C1E"
+textColor = "#F5F5F7"
+font = "sans serif"

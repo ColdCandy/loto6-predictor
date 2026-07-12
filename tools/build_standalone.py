@@ -17,6 +17,7 @@ WEB_DIR = ROOT / "web"
 DIST_DIR = ROOT / "dist"
 TEMPLATE = WEB_DIR / "template.html"
 APP_JS = WEB_DIR / "app.js"
+APPLE_CSS = WEB_DIR / "apple_theme.css"
 OUTPUT = DIST_DIR / "ロト6予想.html"
 
 
@@ -45,11 +46,14 @@ def build(update: bool = False) -> Path:
     data = draws_to_json(draws)
     template = TEMPLATE.read_text(encoding="utf-8")
     app_js = APP_JS.read_text(encoding="utf-8")
+    apple_css = APPLE_CSS.read_text(encoding="utf-8")
 
     data_script = f"<script>const LOTODATA = {json.dumps(data, ensure_ascii=False, separators=(',', ':'))};</script>"
     app_script = f"<script>\n{app_js}\n</script>"
+    css_block = f"<style>\n{apple_css}\n</style>"
 
-    html = template.replace("<!--LOTODATA_PLACEHOLDER-->", data_script)
+    html = template.replace("<!--APPLE_CSS_PLACEHOLDER-->", css_block)
+    html = html.replace("<!--LOTODATA_PLACEHOLDER-->", data_script)
     html = html.replace("<!--APPJS_PLACEHOLDER-->", app_script)
     html = html.replace(
         "<!--DATA_SOURCE-->",

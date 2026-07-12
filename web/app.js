@@ -363,7 +363,7 @@ function renderBarChart(containerId, data, labelKey = "label", valueKey = "value
       (d) => `
     <div class="bar-row">
       <span class="bar-label">${d[labelKey]}</span>
-      <div class="bar-track"><div class="bar-fill" style="width:${(d[valueKey] / max) * 100}%"></div></div>
+      <div class="apple-bar-track"><div class="apple-bar-fill" style="width:${(d[valueKey] / max) * 100}%"></div></div>
       <span class="bar-value">${d[valueKey]}</span>
     </div>`
     )
@@ -371,7 +371,7 @@ function renderBarChart(containerId, data, labelKey = "label", valueKey = "value
 }
 
 function renderPrediction(container, pred) {
-  let html = `<div class="result-box">
+  let html = `<div class="apple-result-box">
     <h3>${pred.name}</h3>
     <p class="desc">${pred.description}</p>
     <div class="ball-row">${renderBalls(pred.numbers)}</div>
@@ -386,7 +386,7 @@ function renderPrediction(container, pred) {
 function renderAllPredictions(container, preds) {
   container.innerHTML = preds
     .map(
-      (pred) => `<div class="result-box">
+      (pred) => `<div class="apple-result-box">
       <h3>${pred.name}</h3>
       <p class="desc">${pred.description}</p>
       <div class="ball-row">${renderBalls(pred.numbers)}</div>
@@ -422,7 +422,7 @@ function initApp() {
   const btnArea = document.getElementById("strategy-buttons");
   STRATEGY_LIST.forEach(({ key, label }) => {
     const btn = document.createElement("button");
-    btn.className = "btn";
+    btn.className = "apple-btn";
     btn.textContent = label;
     btn.onclick = () => {
       currentKey = key;
@@ -453,9 +453,9 @@ function initApp() {
     }
   };
 
-  document.querySelectorAll(".tab").forEach((tab) => {
+  document.querySelectorAll(".apple-tab").forEach((tab) => {
     tab.onclick = () => {
-      document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+      document.querySelectorAll(".apple-tab").forEach((t) => t.classList.remove("active"));
       document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
       tab.classList.add("active");
       document.getElementById(tab.dataset.panel).classList.add("active");
