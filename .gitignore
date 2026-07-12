@@ -9,4 +9,7 @@ tools/cloudflared.exe
 data/emergency_shutdown.flag
 data/security_events.jsonl
 data/favorites.json
+data/.sync_lock
+data/.full_auto_installed
+data/auto_sync.log
 *.log

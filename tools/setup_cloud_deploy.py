@@ -161,10 +161,12 @@ def save_urls(pages_url: str | None, streamlit_url: str, repo: str) -> None:
         "",
         "データは抽選日を含め自動更新されます。",
         "",
-        "【自動同期】",
-        "  ・毎日9:00にPCが起動していれば自動アップロード",
-        "  ・手動同期 → 自動で常時公開.bat",
-        "  ・PCオフでもGitHub側が毎日更新",
+        "【完全自動（設定済み）】",
+        "  ・PC起動時 → 自動同期",
+        "  ・毎日9:00 → 自動同期",
+        "  ・月・木 21:45/22:30 → 抽選後に自動同期",
+        "  ・PCオフでも GitHub が毎日・抽選日に更新",
+        "  ※ 何もしなくてOK",
         "========================================",
     ]
     URL_FILE.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -222,16 +224,18 @@ def main() -> int:
         save_urls(pages_url, STREAMLIT_DEPLOY, repo)
 
         print()
-        print("自動同期スケジュールを登録中...")
+        print("完全自動化をインストール中...")
         try:
-            subprocess.run([sys.executable, str(ROOT / "tools" / "setup_scheduled_sync.py")], cwd=ROOT, check=False)
+            subprocess.run(
+                [sys.executable, str(ROOT / "tools" / "install_full_automation.py")],
+                cwd=ROOT,
+                check=False,
+            )
         except Exception:
             pass
 
         print()
-        print("設定完了！ ブラウザを開きました。")
-        print("HTML版は数分後にアクセスできます（GitHub Actions の完了後）。")
-        print("以降は毎日9:00に自動同期、または「自動で常時公開.bat」で手動同期できます。")
+        print("設定完了！ 以降は完全自動です（何もしなくてOK）。")
         print(f"URL一覧: {URL_FILE}")
         open_results(pages_url)
         return 0
