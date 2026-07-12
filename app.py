@@ -390,11 +390,7 @@ def load_analyzer() -> Loto6Analyzer:
     return Loto6Analyzer(draws)
 
 
-_FRAGMENT_INTERVAL = None if is_cloud_hosted() else timedelta(seconds=1)
-
-
-@st.fragment(run_every=_FRAGMENT_INTERVAL)
-def _live_monitor_bar() -> None:
+def _render_live_monitor_bar() -> None:
     if is_cloud_hosted():
         status = get_data_status()
         st.markdown(
@@ -440,8 +436,12 @@ def _live_monitor_bar() -> None:
         )
 
 
-@st.fragment(run_every=_FRAGMENT_INTERVAL)
-def _live_sidebar_panel() -> None:
+@st.fragment(run_every=timedelta(seconds=1))
+def _live_monitor_bar_fragment() -> None:
+    _render_live_monitor_bar()
+
+
+def _render_live_sidebar_panel() -> None:
     live = get_monitor_live_status()
     status = get_data_status()
     html = (
@@ -475,6 +475,25 @@ def _live_sidebar_panel() -> None:
         html += "<br><br><b>☁️ クラウド常時稼働</b><br>PCの電源が切れていても利用できます"
     html += "</div>"
     st.markdown(html, unsafe_allow_html=True)
+
+
+@st.fragment(run_every=timedelta(seconds=1))
+def _live_sidebar_panel_fragment() -> None:
+    _render_live_sidebar_panel()
+
+
+def _show_live_monitor() -> None:
+    if is_cloud_hosted():
+        _render_live_monitor_bar()
+    else:
+        _live_monitor_bar_fragment()
+
+
+def _show_live_sidebar() -> None:
+    if is_cloud_hosted():
+        _render_live_sidebar_panel()
+    else:
+        _live_sidebar_panel_fragment()
 
 
 def render_balls(numbers: list[int]) -> None:
@@ -540,11 +559,11 @@ def main() -> None:
             unsafe_allow_html=True,
         )
 
-    _live_monitor_bar()
+    _show_live_monitor()
 
     with st.sidebar:
         st.header("⚙️ 設定")
-        _live_sidebar_panel()
+        _show_live_sidebar()
 
         if st.button("🔄 今すぐ最新データを取得", use_container_width=True):
             with st.spinner("取得中..."):

@@ -3,15 +3,24 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 
 def is_cloud_hosted() -> bool:
     """Streamlit Cloud / GitHub Actions など PC 外で動いているか"""
-    return bool(
-        os.environ.get("STREAMLIT_RUNTIME_ENV") == "cloud"
-        or os.environ.get("STREAMLIT_SHARING_MODE")
-        or os.environ.get("STREAMLIT_SERVER_ENVIRONMENT") == "cloud"
-        or os.environ.get("GITHUB_ACTIONS")
-        or os.environ.get("RENDER")
-        or os.environ.get("RAILWAY_ENVIRONMENT")
+    env_flags = (
+        os.environ.get("STREAMLIT_RUNTIME_ENV") == "cloud",
+        os.environ.get("STREAMLIT_SERVER_ENVIRONMENT") == "cloud",
+        bool(os.environ.get("STREAMLIT_SHARING_MODE")),
+        os.environ.get("GITHUB_ACTIONS") == "true",
+        bool(os.environ.get("RENDER")),
+        bool(os.environ.get("RAILWAY_ENVIRONMENT")),
     )
+    if any(env_flags):
+        return True
+
+    cwd = Path.cwd().as_posix()
+    if "/mount/src/" in cwd:
+        return True
+
+    return False
