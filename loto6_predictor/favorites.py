@@ -6,6 +6,8 @@ import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+from .cloud import is_cloud_hosted
+
 FAVORITES_PATH = Path(__file__).resolve().parent.parent / "data" / "favorites.json"
 JST = timezone(timedelta(hours=9))
 
@@ -31,15 +33,25 @@ def save_favorite(numbers: list[int], label: str = "", method: str = "") -> dict
     }
     favs.insert(0, entry)
     favs = favs[:30]
-    FAVORITES_PATH.parent.mkdir(parents=True, exist_ok=True)
-    FAVORITES_PATH.write_text(json.dumps(favs, ensure_ascii=False, indent=2), encoding="utf-8")
+    if is_cloud_hosted():
+        return entry
+    try:
+        FAVORITES_PATH.parent.mkdir(parents=True, exist_ok=True)
+        FAVORITES_PATH.write_text(json.dumps(favs, ensure_ascii=False, indent=2), encoding="utf-8")
+    except OSError:
+        pass
     return entry
 
 
 def delete_favorite(index: int) -> bool:
+    if is_cloud_hosted():
+        return False
     favs = load_favorites()
     if 0 <= index < len(favs):
         favs.pop(index)
-        FAVORITES_PATH.write_text(json.dumps(favs, ensure_ascii=False, indent=2), encoding="utf-8")
+        try:
+            FAVORITES_PATH.write_text(json.dumps(favs, ensure_ascii=False, indent=2), encoding="utf-8")
+        except OSError:
+            return False
         return True
     return False

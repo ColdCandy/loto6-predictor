@@ -9,6 +9,8 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+from .cloud import is_cloud_hosted
+
 CSV_URL = "https://loto6.thekyo.jp/data/loto6.csv"
 DEFAULT_DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "loto6.csv"
 WATCH_STATE_PATH = Path(__file__).resolve().parent.parent / "data" / "watch_state.json"
@@ -93,11 +95,16 @@ def _latest_draw(path: Path) -> Draw | None:
 
 
 def _save_watch_state(result: WatchResult) -> None:
-    WATCH_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    WATCH_STATE_PATH.write_text(
-        json.dumps(asdict(result), ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
+    if is_cloud_hosted():
+        return
+    try:
+        WATCH_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        WATCH_STATE_PATH.write_text(
+            json.dumps(asdict(result), ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+    except OSError:
+        pass
 
 
 def load_watch_state() -> WatchResult | None:
@@ -112,6 +119,9 @@ def load_watch_state() -> WatchResult | None:
 
 def realtime_watch_update(force: bool = False) -> WatchResult:
     """常に最新データを確認し、変化があれば即反映（FX風リアルタイム監視）"""
+    if is_cloud_hosted():
+        return _cloud_watch_status()
+
     path = DEFAULT_DATA_PATH
     interval = realtime_poll_interval_seconds()
     now_str = _now_jst().strftime("%Y/%m/%d %H:%M:%S")
@@ -187,16 +197,40 @@ def realtime_watch_update(force: bool = False) -> WatchResult:
         return result
 
 
+def _cloud_watch_status() -> WatchResult:
+    """クラウド環境: ファイル書き込みなしでステータスのみ返す"""
+    path = DEFAULT_DATA_PATH
+    interval = realtime_poll_interval_seconds()
+    now_str = _now_jst().strftime("%Y/%m/%d %H:%M:%S")
+    latest = _latest_draw(path) if path.exists() else None
+    return WatchResult(
+        checked_at=now_str,
+        updated=False,
+        latest_round=latest.round_num if latest else None,
+        previous_round=latest.round_num if latest else None,
+        latest_date=latest.date if latest else None,
+        interval_seconds=interval,
+        monitoring=True,
+    )
+
+
 def auto_update_if_needed(force: bool = False) -> bool:
     result = realtime_watch_update(force=force)
     return result.updated
 
 
 def load_draws(path: Path = DEFAULT_DATA_PATH, auto_refresh: bool = True) -> list[Draw]:
+    if is_cloud_hosted():
+        auto_refresh = False
     if auto_refresh:
         realtime_watch_update()
     if not path.exists():
-        download_csv(path)
+        try:
+            download_csv(path)
+        except OSError:
+            pass
+    if not path.exists():
+        return []
     return _parse_csv(path)
 
 

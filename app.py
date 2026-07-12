@@ -390,8 +390,24 @@ def load_analyzer() -> Loto6Analyzer:
     return Loto6Analyzer(draws)
 
 
-@st.fragment(run_every=timedelta(seconds=1))
+_FRAGMENT_INTERVAL = None if is_cloud_hosted() else timedelta(seconds=1)
+
+
+@st.fragment(run_every=_FRAGMENT_INTERVAL)
 def _live_monitor_bar() -> None:
+    if is_cloud_hosted():
+        status = get_data_status()
+        st.markdown(
+            f'<div class="live-status">'
+            f'<span class="pulse-dot"></span>'
+            f'<span>クラウド常時稼働中</span>'
+            f'<span>｜ 第<b>{status.get("latest_round", "-")}</b>回まで反映</span>'
+            f'<span>｜ 更新: {status.get("updated_at", "-")}</span>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+        return
+
     live = get_monitor_live_status()
 
     if live["due"]:
@@ -424,7 +440,7 @@ def _live_monitor_bar() -> None:
         )
 
 
-@st.fragment(run_every=timedelta(seconds=1))
+@st.fragment(run_every=_FRAGMENT_INTERVAL)
 def _live_sidebar_panel() -> None:
     live = get_monitor_live_status()
     status = get_data_status()
@@ -496,18 +512,17 @@ def render_prediction(pred: dict) -> None:
 def main() -> None:
     if "security_started" not in st.session_state:
         try:
-            import sys
-            from pathlib import Path
-
-            root = Path(__file__).resolve().parent
-            if str(root) not in sys.path:
-                sys.path.insert(0, str(root))
-            from tools.realtime_monitor import start_background_monitor
-
-            start_background_monitor()
             if not is_cloud_hosted():
+                import sys
+                from pathlib import Path
+
+                root = Path(__file__).resolve().parent
+                if str(root) not in sys.path:
+                    sys.path.insert(0, str(root))
+                from tools.realtime_monitor import start_background_monitor
                 from tools.security_monitor import start_security_monitor
 
+                start_background_monitor()
                 start_security_monitor()
             st.session_state.security_started = True
         except Exception:

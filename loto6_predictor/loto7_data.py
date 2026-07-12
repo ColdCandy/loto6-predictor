@@ -7,6 +7,8 @@ import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 
+from .cloud import is_cloud_hosted
+
 CSV_URL = "https://loto7.thekyo.jp/data/loto7.csv"
 DEFAULT_DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "loto7.csv"
 
@@ -49,6 +51,8 @@ def _parse_csv(path: Path) -> list[Loto7Draw]:
 
 
 def load_draws(path: Path = DEFAULT_DATA_PATH, auto_refresh: bool = True) -> list[Loto7Draw]:
+    if is_cloud_hosted():
+        auto_refresh = False
     if auto_refresh or not path.exists():
         try:
             download_csv(path)
