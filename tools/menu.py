@@ -19,9 +19,10 @@ MENU = """
   [3] LAN公開版 - 同じWi-Fi内の端末から
   [4] 外からアクセス版 - おばあちゃん家など遠隔（PC起動中のみ）
   [5] 常時アクセス設定 - PCオフでも使える（クラウド）
-  [6] コマンドライン版
-  [7] 接続を完全停止
-  [8] 終了
+  [6] 自動で常時公開 - 今すぐクラウドへ同期
+  [7] コマンドライン版
+  [8] 接続を完全停止
+  [9] 終了
 
 """
 
@@ -56,9 +57,10 @@ def main() -> int:
         "3": lambda: run_bat("LAN起動.bat"),
         "4": lambda: run_bat("外から起動.bat"),
         "5": lambda: run_bat("常時アクセス設定.bat"),
-        "6": lambda: run_bat("予想.bat"),
-        "7": lambda: run_bat("接続停止.bat"),
-        "8": lambda: 0,
+        "6": lambda: run_bat("自動で常時公開.bat"),
+        "7": lambda: run_bat("予想.bat"),
+        "8": lambda: run_bat("接続停止.bat"),
+        "9": lambda: 0,
     }
 
     action = actions.get(choice)

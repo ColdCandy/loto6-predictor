@@ -33,7 +33,9 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: 最新データ取得 & HTML生成
-        run: python tools/build_standalone.py --update
+        run: |
+          python -c "from loto6_predictor.loto7_data import download_csv; download_csv()" || true
+          python tools/build_standalone.py --update
 
       - name: サイト準備
         run: |
