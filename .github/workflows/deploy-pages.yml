@@ -1,0 +1,55 @@
+name: 常時アクセス（GitHub Pages）
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # 月・木 21:00 JST 頃（抽選日）にデータ更新
+    - cron: "0 12 * * 1,4"
+    # 毎日 9:00 JST にも更新
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 依存関係インストール
+        run: pip install -r requirements.txt
+
+      - name: 最新データ取得 & HTML生成
+        run: python tools/build_standalone.py --update
+
+      - name: サイト準備
+        run: |
+          mkdir -p _site
+          cp "dist/ロト6予想.html" _site/index.html
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deployment

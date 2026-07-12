@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+.env
+.venv/
+venv/
+tools/cloudflared.exe
+data/emergency_shutdown.flag
+data/security_events.jsonl
+data/favorites.json
+*.log
