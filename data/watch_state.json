@@ -1,10 +1,10 @@
 {
-  "checked_at": "2026/07/12 13:29:12",
+  "checked_at": "2026/07/13 20:33:00",
   "updated": false,
-  "latest_round": 2118,
-  "previous_round": 2118,
-  "latest_date": "2026/7/9",
-  "interval_seconds": 120,
+  "latest_round": 2119,
+  "previous_round": 2119,
+  "latest_date": "2026/7/13",
+  "interval_seconds": 30,
   "monitoring": true,
   "error": null
 }
