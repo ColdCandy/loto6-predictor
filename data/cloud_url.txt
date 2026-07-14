@@ -3,21 +3,25 @@
   ※ PCの電源が切れていても使えます
 ========================================
 
-【HTML版（すぐ使える）】
+【推奨・すぐ使える（ログイン不要）】
   https://coldcandy.github.io/loto6-predictor/
 
-【高機能版 Streamlit（初回のみ設定）】
-  1. ブラウザで https://share.streamlit.io/ を開く
-  2. GitHub でログイン
-  3. リポジトリ: ColdCandy/loto6-predictor / メインファイル: streamlit_app.py
-  4. Deploy をクリック → 常時 URL が発行されます
+  ↑ これをブックマークしてください
+  ・スマホのSafari/Chromeでそのまま開く
+  ・PCオフでも使えます
+  ・毎日・抽選日に自動更新されます
 
-データは抽選日を含め自動更新されます。
+【外から高機能版（このPCの電源ONが必要）】
+  「外から起動.bat」を実行 → 表示された trycloudflare.com URL
 
-【完全自動（設定済み）】
-  ・PC起動時 → 自動同期
-  ・毎日9:00 → 自動同期
-  ・月・木 21:45/22:30 → 抽選後に自動同期
-  ・PCオフでも GitHub が毎日・抽選日に更新
-  ※ 何もしなくてOK
+【Streamlit Cloud 高機能版】
+  ※ 非公開／サインイン必須になっていると外から使えません
+  1. https://share.streamlit.io/ を開く
+  2. アプリ設定 → Sharing を Public にする
+  3. Main file: streamlit_app.py → Reboot
+  旧URL例: https://loto6-predictor-nmrmsaoqhebs2wxvbs6oin.streamlit.app/
+
+【自動更新】
+  ・PC起動時 / 毎日9:00 / 月・木 抽選後 → GitHubへ同期
+  ・GitHub Actions が Pages を再公開
 ========================================

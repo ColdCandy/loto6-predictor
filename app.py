@@ -73,7 +73,20 @@ def _init_streamlit_ui() -> None:
 
 @st.cache_data(ttl=30)
 def load_analyzer() -> Loto6Analyzer:
+    from loto6_predictor.data import download_csv, DEFAULT_DATA_PATH
+
     draws = load_draws(auto_refresh=False)
+    if not draws:
+        try:
+            download_csv(DEFAULT_DATA_PATH)
+            draws = load_draws(auto_refresh=False)
+        except Exception:
+            pass
+    if not draws:
+        raise RuntimeError(
+            "当選データがありません。ネット接続を確認するか、"
+            "https://coldcandy.github.io/loto6-predictor/ をご利用ください。"
+        )
     return Loto6Analyzer(draws)
 
 

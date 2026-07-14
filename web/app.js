@@ -408,45 +408,47 @@ let currentKey = null;
 let currentSeed = Date.now() % 1000000;
 
 function initApp() {
-  if (typeof LOTODATA === "undefined" || !LOTODATA.draws) {
-    document.body.innerHTML = "<p style='padding:2rem'>データが読み込めません。build_standalone.py を実行してください。</p>";
-    return;
-  }
-
-  analyzer = new Loto6Analyzer(LOTODATA.draws);
-  const latest = analyzer.latest;
-
-  if (window.UltraSmooth) {
-    UltraSmooth.enhanceBalls(document);
-    const roundsEl = document.getElementById("meta-rounds");
-    if (roundsEl) {
-      roundsEl.textContent = "0 回";
-      UltraSmooth.animateValue(roundsEl, analyzer.totalRounds, 480, " 回");
+  try {
+    if (typeof LOTODATA === "undefined" || !LOTODATA.draws || !LOTODATA.draws.length) {
+      document.body.innerHTML =
+        "<p style='padding:2rem;font-family:sans-serif'>データが読み込めません。" +
+        "数分後にページを再読み込みするか、<a href='https://coldcandy.github.io/loto6-predictor/'>こちら</a>を開いてください。</p>";
+      return;
     }
-  } else {
-    document.getElementById("meta-rounds").textContent = `${analyzer.totalRounds} 回`;
-  }
-  document.getElementById("meta-latest-round").textContent = latest ? `第 ${latest.r} 回` : "-";
-  document.getElementById("meta-latest-date").textContent = latest ? latest.d : "-";
-  document.getElementById("meta-updated").textContent = LOTODATA.updated || "-";
 
-  if (latest) {
-    document.getElementById("latest-balls").innerHTML = renderBalls(latest.n);
-    document.getElementById("latest-bonus").textContent = `ボーナス: ${String(latest.b).padStart(2, "0")}`;
-  }
+    analyzer = new Loto6Analyzer(LOTODATA.draws);
+    const latest = analyzer.latest;
 
-  const btnArea = document.getElementById("strategy-buttons");
-  STRATEGY_LIST.forEach(({ key, label }) => {
-    const btn = document.createElement("button");
-    btn.className = "apple-btn";
-    btn.textContent = label;
-    btn.onclick = () => {
-      currentKey = key;
-      currentSeed = Date.now() % 1000000;
-      renderPrediction(document.getElementById("results"), Strategies[key](analyzer, currentSeed));
-    };
-    btnArea.appendChild(btn);
-  });
+    // メトリクスは先に同期表示（アニメ失敗でも "-" のままにしない）
+    const roundsEl = document.getElementById("meta-rounds");
+    if (roundsEl) roundsEl.textContent = `${analyzer.totalRounds} 回`;
+    document.getElementById("meta-latest-round").textContent = latest ? `第 ${latest.r} 回` : "-";
+    document.getElementById("meta-latest-date").textContent = latest ? latest.d : "-";
+    document.getElementById("meta-updated").textContent = LOTODATA.updated || "-";
+
+    if (window.UltraSmooth && roundsEl) {
+      try {
+        UltraSmooth.animateValue(roundsEl, analyzer.totalRounds, 480, " 回");
+      } catch (_) {}
+    }
+
+    if (latest) {
+      document.getElementById("latest-balls").innerHTML = renderBalls(latest.n);
+      document.getElementById("latest-bonus").textContent = `ボーナス: ${String(latest.b).padStart(2, "0")}`;
+    }
+
+    const btnArea = document.getElementById("strategy-buttons");
+    STRATEGY_LIST.forEach(({ key, label }) => {
+      const btn = document.createElement("button");
+      btn.className = "apple-btn";
+      btn.textContent = label;
+      btn.onclick = () => {
+        currentKey = key;
+        currentSeed = Date.now() % 1000000;
+        renderPrediction(document.getElementById("results"), Strategies[key](analyzer, currentSeed));
+      };
+      btnArea.appendChild(btn);
+    });
 
   document.getElementById("btn-recommend").onclick = () => {
     currentKey = "composite";
@@ -480,6 +482,13 @@ function initApp() {
       if (tab.dataset.panel === "panel-stats") renderStats();
     };
   });
+  } catch (err) {
+    console.error(err);
+    document.body.innerHTML =
+      "<p style='padding:2rem;font-family:sans-serif'>画面の初期化に失敗しました。<br>" +
+      String(err) +
+      "<br><a href='https://coldcandy.github.io/loto6-predictor/'>再読み込み</a></p>";
+  }
 }
 
 function renderStats() {

@@ -4,17 +4,17 @@ set PYTHONUNBUFFERED=1
 cd /d "%~dp0"
 echo ========================================
 echo   ロト6予想 - 外からアクセス版
-echo   おばあちゃん家など遠隔から使えます
 echo ========================================
 echo.
-echo  同じWi-Fiが不要です。
-echo  表示されたURLをスマホに送るだけ！
+echo  まず安定URL（PCオフでもOK・推奨）:
+echo  https://coldcandy.github.io/loto6-predictor/
 echo.
-echo  停止するとき → 接続停止.bat をダブルクリック
+echo  この後、高機能版の一時URLも発行します。
+echo  停止するとき → 接続停止.bat
 echo.
-echo  ※ Connection error が出る場合:
-echo     常時アクセス開く.bat を使うと PCオフでも安定します
+python -m pip install -r requirements.txt -q
+python tools\online_healthcheck.py
 echo.
-pip install -r requirements.txt -q
 python tools\start_remote_server.py
+echo.
 pause

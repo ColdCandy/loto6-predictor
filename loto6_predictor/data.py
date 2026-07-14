@@ -220,8 +220,18 @@ def auto_update_if_needed(force: bool = False) -> bool:
 
 
 def load_draws(path: Path = DEFAULT_DATA_PATH, auto_refresh: bool = True) -> list[Draw]:
+    """当選データを読み込む。クラウドでは起動時に必ず最新CSVを取得する。"""
     if is_cloud_hosted():
-        auto_refresh = False
+        # Streamlit Cloud はローカル監視不要。毎回ネットから最新を取りに行く。
+        try:
+            download_csv(path)
+        except Exception:
+            # ネット不可時は同梱CSVにフォールバック
+            pass
+        if path.exists():
+            return _parse_csv(path)
+        return []
+
     if auto_refresh:
         realtime_watch_update()
     if not path.exists():
