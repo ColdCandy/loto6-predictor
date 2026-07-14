@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import random
+import time
+from datetime import timedelta
 
 import pandas as pd
 import streamlit as st
@@ -93,12 +95,38 @@ def load_analyzer() -> Loto6Analyzer:
 
 def _render_live_monitor_bar() -> None:
     if is_cloud_hosted():
+        interval = realtime_poll_interval_seconds()
+        now_ts = time.time()
+        last = float(st.session_state.get("cloud_last_check_ts") or 0)
+        if last <= 0:
+            st.session_state.cloud_last_check_ts = now_ts
+            last = now_ts
+        elapsed = now_ts - last
+        remaining = max(0, int(interval - elapsed))
         status = get_data_status()
+        from datetime import datetime, timezone, timedelta as td
+
+        jst = timezone(td(hours=9))
+        now_str = datetime.now(jst).strftime("%H:%M:%S")
+
+        if remaining <= 0:
+            try:
+                from loto6_predictor.data import DEFAULT_DATA_PATH, download_csv
+
+                download_csv(DEFAULT_DATA_PATH)
+                load_analyzer.clear()
+            except Exception:
+                pass
+            st.session_state.cloud_last_check_ts = time.time()
+            remaining = interval
+
         st.markdown(
             f'<div class="live-status">'
             f'<span class="pulse-dot"></span>'
             f'<span>クラウド常時稼働中</span>'
-            f'<span>｜ 第<b>{status.get("latest_round", "-")}</b>回まで反映</span>'
+            f'<span>｜ 現在 <b>{now_str}</b></span>'
+            f'<span>｜ 次回チェック <b>{remaining}</b>秒</span>'
+            f'<span>｜ 第<b>{status.get("latest_round", "-")}</b>回</span>'
             f'<span>｜ 更新: {status.get("updated_at", "-")}</span>'
             f'</div>',
             unsafe_allow_html=True,
@@ -140,12 +168,26 @@ def _render_live_monitor_bar() -> None:
 def _render_live_sidebar_panel() -> None:
     live = get_monitor_live_status()
     status = get_data_status()
+
+    # クラウドでも秒針が動くよう、表示時刻は常に現在時刻を使う
+    if is_cloud_hosted():
+        interval = realtime_poll_interval_seconds()
+        now_ts = time.time()
+        last = float(st.session_state.get("cloud_last_check_ts") or now_ts)
+        remaining = max(0, int(interval - (now_ts - last)))
+        now_str = live["now"]
+        last_check = status.get("updated_at", live["last_check"])
+    else:
+        remaining = live["remaining"]
+        now_str = live["now"]
+        last_check = live["last_check"]
+
     html = (
         f'<div class="sidebar-live">'
         f'<b>📡 リアルタイム監視</b><br>'
-        f'現在: <b>{live["now"]}</b><br>'
-        f'次回まで: <b>{live["remaining"]}</b>秒<br>'
-        f'最終確認: {live["last_check"]}<br>'
+        f'現在: <b>{now_str}</b><br>'
+        f'次回まで: <b>{remaining}</b>秒<br>'
+        f'最終確認: {last_check}<br>'
     )
     if status.get("exists"):
         html += (
@@ -168,7 +210,7 @@ def _render_live_sidebar_panel() -> None:
         except Exception:
             pass
     else:
-        html += "<br><br><b>☁️ クラウド常時稼働</b><br>PCの電源が切れていても利用できます"
+        html += "<br><br><b>☁️ クラウド常時稼働</b><br>1秒ごとに表示を更新中"
     html += "</div>"
     st.markdown(html, unsafe_allow_html=True)
 
@@ -179,6 +221,21 @@ def _show_live_monitor() -> None:
 
 def _show_live_sidebar() -> None:
     _render_live_sidebar_panel()
+
+
+if hasattr(st, "fragment"):
+    try:
+
+        @st.fragment(run_every=timedelta(seconds=1))
+        def _show_live_monitor() -> None:
+            _render_live_monitor_bar()
+
+        @st.fragment(run_every=timedelta(seconds=1))
+        def _show_live_sidebar() -> None:
+            _render_live_sidebar_panel()
+
+    except Exception:
+        pass
 
 
 def _safe_bar_chart(data, **kwargs) -> None:

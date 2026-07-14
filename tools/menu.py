@@ -19,10 +19,11 @@ MENU = """
   [3] LAN公開版 - 同じWi-Fi内の端末から
   [4] 外からアクセス版 - 遠隔（PC起動中・招待ログイン）
   [5] 招待パスワード設定 - 家族用ID/パス発行
-  [6] 常時アクセス設定 - PCオフでも使える（クラウド）
-  [7] 自動で常時公開 - 今すぐクラウドへ同期
-  [8] コマンドライン版
-  [9] 接続を完全停止
+  [6] Streamlitクラウド設定 - Secrets貼り付け半自動
+  [7] 常時アクセス設定 - PCオフでも使える（クラウド）
+  [8] 自動で常時公開 - 今すぐクラウドへ同期
+  [9] コマンドライン版
+  [A] 接続を完全停止
   [0] 終了
 
 """
@@ -62,10 +63,12 @@ def main() -> int:
         "3": lambda: run_bat("LAN起動.bat"),
         "4": lambda: run_bat("外から起動.bat"),
         "5": lambda: run_bat("招待パスワード設定.bat"),
-        "6": lambda: run_bat("常時アクセス設定.bat"),
-        "7": lambda: run_bat("自動で常時公開.bat"),
-        "8": lambda: run_bat("予想.bat"),
-        "9": lambda: run_bat("接続停止.bat"),
+        "6": lambda: run_bat("Streamlitクラウド設定.bat"),
+        "7": lambda: run_bat("常時アクセス設定.bat"),
+        "8": lambda: run_bat("自動で常時公開.bat"),
+        "9": lambda: run_bat("予想.bat"),
+        "A": lambda: run_bat("接続停止.bat"),
+        "a": lambda: run_bat("接続停止.bat"),
         "0": lambda: 0,
     }
 
