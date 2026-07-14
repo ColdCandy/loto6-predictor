@@ -1,32 +1,46 @@
-name: 常時アクセス（GitHub Pages）
+name: 常時アクセス（自動保存・精度改善・公開）
 
 on:
   push:
     branches: [main]
   schedule:
-    # 毎日 9:00 JST
+    # 毎日 0:00 / 9:00 / 15:00 JST（通常監視）
+    - cron: "0 15 * * *"
     - cron: "0 0 * * *"
-    # 月・木 20:00 / 21:00 / 22:00 / 23:00 JST（抽選日）
+    - cron: "0 6 * * *"
+    # 月・木 20〜23時 JST（抽選直後の最新反映）30分間隔相当
     - cron: "0 11 * * 1,4"
+    - cron: "30 11 * * 1,4"
     - cron: "0 12 * * 1,4"
+    - cron: "30 12 * * 1,4"
     - cron: "0 13 * * 1,4"
+    - cron: "30 13 * * 1,4"
     - cron: "0 14 * * 1,4"
+    - cron: "30 14 * * 1,4"
   workflow_dispatch:
+    inputs:
+      force_train:
+        description: "強制で精度再学習する"
+        type: boolean
+        default: false
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
 concurrency:
-  group: pages
+  group: pages-auto
   cancel-in-progress: false
 
 jobs:
-  build:
+  update-and-deploy:
+    if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - uses: actions/setup-python@v5
         with:
@@ -35,22 +49,58 @@ jobs:
       - name: 依存関係インストール
         run: pip install -r requirements.txt
 
-      - name: 最新データ取得 & HTML生成
+      - name: 最新当選の取得・保存＋精度自動改善
         run: |
-          python -c "from loto6_predictor.loto7_data import download_csv; download_csv()" || true
-          python tools/build_standalone.py --update
+          if [ "${{ github.event.inputs.force_train }}" = "true" ]; then
+            python tools/cloud_auto_improve.py --force
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
+            # 抽選時間帯は短め学習、それ以外は通常
+            HOUR=$(TZ=Asia/Tokyo date +%H)
+            DOW=$(TZ=Asia/Tokyo date +%u)
+            if [ "$DOW" = "1" ] || [ "$DOW" = "4" ]; then
+              if [ "$HOUR" -ge 20 ] && [ "$HOUR" -le 23 ]; then
+                python tools/cloud_auto_improve.py --light
+              else
+                python tools/cloud_auto_improve.py
+              fi
+            else
+              python tools/cloud_auto_improve.py
+            fi
+          else
+            python tools/cloud_auto_improve.py --light
+          fi
+
+      - name: 変更があればリポジトリへ自動保存
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/loto6.csv data/loto7.csv data/ai_trained_model.json data/ai_next_tip.json data/cloud_auto_status.json data/walkforward_verify.json || true
+          if git diff --cached --quiet; then
+            echo "保存する変更なし"
+          else
+            ROUND=$(python -c "from loto6_predictor.data import load_draws; d=load_draws(auto_refresh=False); print(d[-1].round_num if d else '?')")
+            git commit -m "auto: 第${ROUND}回まで保存・精度学習 [skip ci]"
+            git push
+            echo "リポジトリへ自動保存しました（第${ROUND}回）"
+          fi
+
+      - name: HTML生成（最新データ＋AI本命埋め込み）
+        run: python tools/build_standalone.py
 
       - name: サイト準備
         run: |
           mkdir -p _site
           cp "dist/ロト6予想.html" _site/index.html
+          # ステータスも公開（確認用）
+          cp data/cloud_auto_status.json _site/status.json || true
+          cp data/ai_next_tip.json _site/ai_tip.json || true
 
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
 
   deploy:
-    needs: build
+    needs: update-and-deploy
     runs-on: ubuntu-latest
     environment:
       name: github-pages

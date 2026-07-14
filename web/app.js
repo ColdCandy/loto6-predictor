@@ -437,6 +437,27 @@ function initApp() {
       document.getElementById("latest-bonus").textContent = `ボーナス: ${String(latest.b).padStart(2, "0")}`;
     }
 
+    // クラウド自動学習の本命ヒント
+    const tip = LOTODATA.ai_tip;
+    const tipCard = document.getElementById("ai-tip-card");
+    if (tip && tip.numbers && tipCard) {
+      tipCard.style.display = "";
+      const meta = document.getElementById("ai-tip-meta");
+      if (meta) {
+        meta.textContent =
+          `第${tip.based_on_round || "?"}回時点の学習結果｜確信度 ${tip.confidence || "-"}%（${tip.confidence_label || ""}）｜更新 ${tip.generated_at || ""}`;
+      }
+      document.getElementById("ai-tip-balls").innerHTML = renderBalls(tip.numbers);
+      document.getElementById("ai-tip-copy").textContent = `コピー用: ${tip.formatted || ""}`;
+      const poolEl = document.getElementById("ai-tip-pool");
+      if (poolEl && tip.pool && tip.pool.length) {
+        poolEl.innerHTML = tip.pool
+          .slice(0, 8)
+          .map((p) => `${p.line_no === 1 ? "★本命" : p.line_no + "."} ${p.formatted}`)
+          .join("<br>");
+      }
+    }
+
     const btnArea = document.getElementById("strategy-buttons");
     STRATEGY_LIST.forEach(({ key, label }) => {
       const btn = document.createElement("button");

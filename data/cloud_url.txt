@@ -7,21 +7,19 @@
   https://coldcandy.github.io/loto6-predictor/
 
   ↑ これをブックマークしてください
-  ・スマホのSafari/Chromeでそのまま開く
-  ・PCオフでも使えます
-  ・毎日・抽選日に自動更新されます
+  ・最新当選が出ると GitHub が自動取得・保存
+  ・精度学習もクラウドで自動実行
+  ・サイトに AI本命 が自動反映されます
 
-【外から高機能版（このPCの電源ONが必要）】
-  「外から起動.bat」を実行 → 表示された trycloudflare.com URL
+【自動スケジュール（PCオフでも実行）】
+  ・毎日 0時 / 9時 / 15時（JST）
+  ・月・木 20〜23時は30分ごと（抽選直後）
+  ・更新内容: CSV保存 / AI学習 / Pages再公開
 
-【Streamlit Cloud 高機能版】
-  ※ 非公開／サインイン必須になっていると外から使えません
-  1. https://share.streamlit.io/ を開く
-  2. アプリ設定 → Sharing を Public にする
-  3. Main file: streamlit_app.py → Reboot
-  旧URL例: https://loto6-predictor-nmrmsaoqhebs2wxvbs6oin.streamlit.app/
+【状態確認】
+  https://coldcandy.github.io/loto6-predictor/status.json
+  https://coldcandy.github.io/loto6-predictor/ai_tip.json
 
-【自動更新】
-  ・PC起動時 / 毎日9:00 / 月・木 抽選後 → GitHubへ同期
-  ・GitHub Actions が Pages を再公開
+【手動実行】
+  GitHub → Actions → 「常時アクセス」→ Run workflow
 ========================================
