@@ -74,6 +74,7 @@
 
     <div class="apple-tabs">
       <button class="apple-tab active" data-panel="panel-predict">予想番号</button>
+      <button class="apple-tab" data-panel="panel-trends">推移グラフ</button>
       <button class="apple-tab" data-panel="panel-check">当選チェック</button>
       <button class="apple-tab" data-panel="panel-mine">マイ番号</button>
       <button class="apple-tab" data-panel="panel-stats">統計グラフ</button>
@@ -89,6 +90,27 @@
         </div>
         <div class="apple-btn-grid" id="strategy-buttons"></div>
         <div id="results"><p class="hint">上のボタンを押すと予想番号が表示されます</p></div>
+        <div id="prediction-viz" class="prediction-viz" style="display:none"></div>
+      </div>
+    </div>
+
+    <div id="panel-trends" class="tab-panel">
+      <div class="apple-card">
+        <h2>📈 出現推移・予想の可視化</h2>
+        <p class="hint" style="padding:0 0 12px;text-align:left">
+          予想番号ごとの出現回数・出遅れ・時期別の推移をグラフ表示します。予想タブで番号を出すと、ここに連動します。
+        </p>
+        <div class="apple-action-row">
+          <button type="button" class="apple-btn apple-btn-primary" id="btn-trend-ai">AI本命の推移</button>
+          <button type="button" class="apple-btn" id="btn-trend-hot">直近ホット TOP6</button>
+          <button type="button" class="apple-btn" id="btn-trend-overdue">出遅れ TOP6</button>
+        </div>
+        <label class="field-label" for="trend-manual">番号を直接指定（例: 02 05 08 35 36 43）</label>
+        <input class="apple-input" id="trend-manual" type="text" inputmode="numeric" placeholder="最大6個" autocomplete="off">
+        <div class="apple-action-row" style="margin-top:12px">
+          <button type="button" class="apple-btn" id="btn-trend-manual">この番号でグラフ更新</button>
+        </div>
+        <div id="trends-viz"><p class="hint">予想番号を出すか、上のボタンを押してください</p></div>
       </div>
     </div>
 
