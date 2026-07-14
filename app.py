@@ -538,7 +538,7 @@ def main() -> None:
         except Exception:
             st.session_state.security_started = False
 
-    # PCローカル: 最近の起動同期がなければクラウド同期・保存・学習
+    # PCローカル: 最近の起動同期がなければクラウドに合わせて取り込む
     if not is_cloud_hosted() and not st.session_state.get("_local_boot_synced"):
         st.session_state["_local_boot_synced"] = True
         need_sync = True
@@ -552,7 +552,7 @@ def main() -> None:
         except Exception:
             need_sync = True
         if need_sync:
-            with st.spinner("クラウド同期中… 当選保存・学習・予想更新を実行しています"):
+            with st.spinner("クラウドに合わせて同期中…（当選・学習・予想を取り込み）"):
                 try:
                     import sys
 
@@ -561,7 +561,7 @@ def main() -> None:
                         sys.path.insert(0, str(root))
                     from tools.local_boot_sync import sync_on_boot
 
-                    boot = sync_on_boot(light=True)
+                    boot = sync_on_boot(train=False, push=False)
                     st.session_state["local_boot_result"] = boot
                     load_analyzer.clear()
                 except Exception as e:
@@ -581,16 +581,16 @@ def main() -> None:
 
         if not is_cloud_hosted():
             boot = st.session_state.get("local_boot_result") or {}
-            st.markdown("### 🔁 PC起動同期")
+            st.markdown("### 🔁 クラウドに合わせる")
             if boot.get("message"):
                 if boot.get("ok"):
                     st.success(boot["message"])
                 else:
                     st.info(boot.get("message", ""))
-            if boot.get("improve", {}).get("detail"):
-                st.caption(str(boot["improve"]["detail"])[:120])
-            if st.button("クラウド同期＋学習を再実行", use_container_width=True):
-                with st.spinner("同期・学習中..."):
+            if boot.get("pull", {}).get("detail"):
+                st.caption(f"取得: {str(boot['pull']['detail'])[:100]}")
+            if st.button("クラウドから最新を取得", use_container_width=True):
+                with st.spinner("クラウドに合わせて同期中..."):
                     try:
                         import sys
 
@@ -599,7 +599,9 @@ def main() -> None:
                             sys.path.insert(0, str(root))
                         from tools.local_boot_sync import sync_on_boot
 
-                        st.session_state["local_boot_result"] = sync_on_boot(light=True)
+                        st.session_state["local_boot_result"] = sync_on_boot(
+                            train=False, push=False
+                        )
                         load_analyzer.clear()
                     except Exception as e:
                         st.session_state["local_boot_result"] = {

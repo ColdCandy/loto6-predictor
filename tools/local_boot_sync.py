@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """PCでロト6を動かしたときのローカル起動同期:
 
-1. クラウド（GitHub）から最新の保存・学習結果を取得（git pull）
-2. 最新当選を取得して保存
-3. 必要なら学習・AI本命を更新
-4. 変更があれば GitHub へ戻してクラウドと揃える
-5. オフラインHTMLも再生成
+方針: クラウド（GitHub Actions）が正本。
+PCはクラウドに合わせて取り込む。
+
+1. クラウドから最新の当選・学習・AI本命を取得（git pull）
+2. オフラインHTMLを再生成（取り込まれたデータで）
+3. （任意）手元でも公式CSVを軽く確認更新 ※通常はクラウドへは戻さない
+4. （任意）--train で手元学習 / --push でクラウドへ書き戻し
 
 Streamlit / 予想GUI.bat から呼ばれる。
 """
@@ -77,7 +79,6 @@ def save_status(payload: dict) -> None:
 def git_pull() -> tuple[bool, str]:
     if not (ROOT / ".git").exists():
         return False, "Git未初期化"
-    # 作業ツリーの汚れで pull が止まらないよう stash
     dirty = run(["git", "status", "--porcelain"])
     stashed = False
     if dirty.stdout.strip():
@@ -86,7 +87,6 @@ def git_pull() -> tuple[bool, str]:
     try:
         r = run(["git", "pull", "--ff-only", "origin", "main"], timeout=120)
         if r.returncode != 0:
-            # リベース無しの通常 pull を再試行
             r = run(["git", "pull", "origin", "main"], timeout=120)
         ok = r.returncode == 0
         detail = (r.stdout or r.stderr or "").strip().splitlines()
@@ -95,6 +95,23 @@ def git_pull() -> tuple[bool, str]:
     finally:
         if stashed:
             run(["git", "stash", "pop"], timeout=60)
+
+
+def refresh_csv_local() -> tuple[bool, str]:
+    """手元の確認用。結果は通常クラウドへ上げない。"""
+    try:
+        from loto6_predictor.data import DEFAULT_DATA_PATH, download_csv, load_draws
+
+        before = DEFAULT_DATA_PATH.stat().st_mtime if DEFAULT_DATA_PATH.exists() else 0
+        download_csv(DEFAULT_DATA_PATH)
+        after = DEFAULT_DATA_PATH.stat().st_mtime if DEFAULT_DATA_PATH.exists() else 0
+        draws = load_draws(auto_refresh=False)
+        latest = draws[-1].round_num if draws else "?"
+        if after != before:
+            return True, f"手元CSV更新（第{latest}回）"
+        return True, f"手元CSVは最新（第{latest}回）"
+    except Exception as e:
+        return False, f"手元CSV確認スキップ: {e}"
 
 
 def run_improve(light: bool = True) -> tuple[bool, str]:
@@ -122,12 +139,11 @@ def push_data_updates() -> tuple[bool, str]:
         "data/ai_next_tip.json",
         "data/cloud_auto_status.json",
         "data/walkforward_verify.json",
-        "data/local_boot_status.json",
     ]
     run(["git", "add", *paths])
     status = run(["git", "diff", "--cached", "--quiet"])
     if status.returncode == 0:
-        return False, "クラウドへ戻す変更なし"
+        return False, "戻す変更なし"
     round_num = "?"
     try:
         from loto6_predictor.data import load_draws
@@ -137,14 +153,14 @@ def push_data_updates() -> tuple[bool, str]:
             round_num = str(draws[-1].round_num)
     except Exception:
         pass
-    msg = f"local-boot: 第{round_num}回 保存・学習同期"
+    msg = f"local-boot: 第{round_num}回 手元更新を同期"
     c = run(["git", "commit", "-m", msg])
     if c.returncode != 0:
         return False, "commitスキップ"
     p = run(["git", "push", "origin", "HEAD:main"], timeout=120)
     if p.returncode != 0:
         return False, (p.stderr or "push失敗")[-300:]
-    return True, "GitHubへ同期完了"
+    return True, "GitHubへ書き戻し完了"
 
 
 def rebuild_html() -> tuple[bool, str]:
@@ -155,12 +171,14 @@ def rebuild_html() -> tuple[bool, str]:
     return r.returncode == 0, "HTML更新" if r.returncode == 0 else "HTML更新失敗"
 
 
-def sync_on_boot(*, light: bool = True) -> dict:
-    """起動時同期の本体。結果dictを返す。"""
+def sync_on_boot(*, train: bool = False, push: bool = False, refresh_csv: bool = True) -> dict:
+    """起動時同期。既定はクラウド合わせ（pull）のみ。"""
     result = {
         "ok": False,
+        "mode": "cloud-first",
         "started_at": _now().strftime("%Y/%m/%d %H:%M:%S"),
         "pull": None,
+        "csv": None,
         "improve": None,
         "push": None,
         "html": None,
@@ -174,28 +192,47 @@ def sync_on_boot(*, light: bool = True) -> dict:
 
     try:
         log("=" * 56)
-        log("PC起動同期: クラウド取得 → 保存 → 学習 → 予想更新")
+        log("PC起動同期: クラウドに合わせて取り込む")
         log("=" * 56)
 
         ok_pull, pull_msg = git_pull()
         result["pull"] = {"ok": ok_pull, "detail": pull_msg}
         log(f"クラウド取得: {pull_msg}")
 
-        ok_imp, imp_msg = run_improve(light=light)
-        result["improve"] = {"ok": ok_imp, "detail": imp_msg}
-        log(f"保存・学習: {imp_msg}")
+        if refresh_csv:
+            ok_csv, csv_msg = refresh_csv_local()
+            result["csv"] = {"ok": ok_csv, "detail": csv_msg}
+            log(f"手元確認: {csv_msg}")
 
-        ok_push, push_msg = push_data_updates()
-        result["push"] = {"ok": ok_push, "detail": push_msg}
-        log(f"クラウドへ戻す: {push_msg}")
+        if train:
+            ok_imp, imp_msg = run_improve(light=True)
+            result["improve"] = {"ok": ok_imp, "detail": imp_msg}
+            log(f"手元学習: {imp_msg}")
+        else:
+            result["improve"] = {
+                "ok": True,
+                "detail": "クラウドの学習結果を使用（手元再学習なし）",
+            }
+            log(result["improve"]["detail"])
+
+        if push:
+            ok_push, push_msg = push_data_updates()
+            result["push"] = {"ok": ok_push, "detail": push_msg}
+            log(f"クラウドへ書き戻し: {push_msg}")
+        else:
+            result["push"] = {
+                "ok": True,
+                "detail": "書き戻しなし（クラウド正本のまま）",
+            }
+            log(result["push"]["detail"])
 
         ok_html, html_msg = rebuild_html()
         result["html"] = {"ok": ok_html, "detail": html_msg}
         log(f"サイトHTML: {html_msg}")
 
-        result["ok"] = bool(ok_imp)
+        result["ok"] = bool(ok_pull or (result.get("csv") or {}).get("ok"))
         result["message"] = (
-            "起動同期完了（データ保存・学習・予想更新）"
+            "起動同期完了（パソコンをクラウドに合わせました）"
             if result["ok"]
             else "起動同期は一部失敗しました（アプリは続行可）"
         )
@@ -220,8 +257,10 @@ def main() -> int:
             sys.stderr.reconfigure(encoding="utf-8")
         except Exception:
             pass
-    light = "--full" not in sys.argv
-    result = sync_on_boot(light=light)
+    train = "--train" in sys.argv or "--full" in sys.argv
+    push = "--push" in sys.argv
+    no_csv = "--no-csv" in sys.argv
+    result = sync_on_boot(train=train, push=push, refresh_csv=not no_csv)
     return 0 if result.get("ok") else 1
 
 
