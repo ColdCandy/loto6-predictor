@@ -24,6 +24,12 @@
       宝くじは完全なランダム抽選です。このツールは参考情報であり、当選を保証するものではありません。
     </div>
 
+    <div class="countdown-bar" id="countdown-bar">
+      <div class="countdown-label">次回抽選まで</div>
+      <div class="countdown-value" id="countdown-value">計算中…</div>
+      <div class="countdown-sub" id="countdown-sub"></div>
+    </div>
+
     <div class="apple-metrics">
       <div class="apple-metric"><div class="label">分析回数</div><div class="value" id="meta-rounds">-</div></div>
       <div class="apple-metric"><div class="label">最新回</div><div class="value" id="meta-latest-round">-</div></div>
@@ -31,12 +37,33 @@
       <div class="apple-metric"><div class="label">データ更新</div><div class="value" id="meta-updated" style="font-size:0.85rem">-</div></div>
     </div>
 
+    <div class="apple-card" id="auto-status-card" style="display:none">
+      <h2>☁️ クラウド自動学習</h2>
+      <p class="hint" id="auto-status-text" style="padding:8px 0;text-align:left"></p>
+    </div>
+
     <div class="apple-card" id="ai-tip-card" style="display:none">
       <h2>AI検証済み本命（クラウド自動更新）</h2>
-      <p class="hint" id="ai-tip-meta"></p>
+      <p class="hint" id="ai-tip-meta" style="padding:8px 0;text-align:left"></p>
       <div class="ball-row" id="ai-tip-balls"></div>
+      <div class="result-actions">
+        <button type="button" class="apple-btn apple-btn-primary" id="btn-copy-ai">コピー</button>
+        <button type="button" class="apple-btn" id="btn-save-ai">マイ番号に保存</button>
+      </div>
       <p style="text-align:center;font-size:0.875rem;color:var(--label-secondary)" id="ai-tip-copy"></p>
       <div id="ai-tip-pool" style="margin-top:10px;font-size:0.8125rem;color:var(--label-secondary)"></div>
+    </div>
+
+    <div class="apple-card" id="weekly-pack-card">
+      <h2>⭐ 今週のおすすめパック</h2>
+      <p class="hint" style="padding:0 0 12px;text-align:left">
+        AI本命・複合スコア・カバー行をまとめた購入候補です。ワンタップでコピー・保存できます。
+      </p>
+      <div class="apple-action-row">
+        <button type="button" class="apple-btn apple-btn-primary" id="btn-weekly-pack">パックを生成</button>
+        <button type="button" class="apple-btn" id="btn-save-pack">全部マイ番号へ</button>
+      </div>
+      <div id="weekly-pack-results"><p class="hint">「パックを生成」を押すと候補が出ます</p></div>
     </div>
 
     <div class="apple-card">
@@ -47,6 +74,8 @@
 
     <div class="apple-tabs">
       <button class="apple-tab active" data-panel="panel-predict">予想番号</button>
+      <button class="apple-tab" data-panel="panel-check">当選チェック</button>
+      <button class="apple-tab" data-panel="panel-mine">マイ番号</button>
       <button class="apple-tab" data-panel="panel-stats">統計グラフ</button>
     </div>
 
@@ -60,6 +89,37 @@
         </div>
         <div class="apple-btn-grid" id="strategy-buttons"></div>
         <div id="results"><p class="hint">上のボタンを押すと予想番号が表示されます</p></div>
+      </div>
+    </div>
+
+    <div id="panel-check" class="tab-panel">
+      <div class="apple-card">
+        <h2>✅ 当選チェック</h2>
+        <p class="hint" style="padding:0 0 12px;text-align:left">
+          購入した6数字を入力すると、最新回または指定回と照合します。
+        </p>
+        <label class="field-label" for="check-numbers">番号（例: 02 05 08 35 36 43）</label>
+        <input class="apple-input" id="check-numbers" type="text" inputmode="numeric" placeholder="1〜43 から6個" autocomplete="off">
+        <label class="field-label" for="check-round">照合する回（空欄=最新回）</label>
+        <input class="apple-input" id="check-round" type="number" min="1" placeholder="例: 2119" autocomplete="off">
+        <div class="apple-action-row" style="margin-top:12px">
+          <button type="button" class="apple-btn apple-btn-primary" id="btn-check">照合する</button>
+          <button type="button" class="apple-btn" id="btn-check-history">直近100回を一括照合</button>
+        </div>
+        <div id="check-result" style="margin-top:14px"></div>
+      </div>
+    </div>
+
+    <div id="panel-mine" class="tab-panel">
+      <div class="apple-card">
+        <h2>📌 マイ番号</h2>
+        <p class="hint" style="padding:0 0 12px;text-align:left">
+          この端末に保存されます（ブラウザのローカル保存）。スマホにホーム画面追加すると便利です。
+        </p>
+        <div class="apple-action-row">
+          <button type="button" class="apple-btn" id="btn-clear-mine">全部削除</button>
+        </div>
+        <div id="mine-list"><p class="hint">まだ保存がありません</p></div>
       </div>
     </div>
 

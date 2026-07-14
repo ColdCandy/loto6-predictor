@@ -617,3 +617,107 @@ th {
 
 .copy-text { font-size: 0.8125rem; color: var(--system-green); margin-top: 10px; font-weight: 500; }
 .hint { text-align: center; color: var(--label-secondary); padding: 32px; font-size: 0.9375rem; }
+
+.countdown-bar {
+  margin: 0 0 16px;
+  padding: 16px 18px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, rgba(0, 122, 255, 0.12), rgba(52, 199, 89, 0.1));
+  border: 1px solid var(--separator);
+  text-align: center;
+}
+.countdown-label {
+  font-size: 0.8125rem;
+  color: var(--label-secondary);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.countdown-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--label-primary);
+}
+.countdown-sub {
+  margin-top: 4px;
+  font-size: 0.8125rem;
+  color: var(--label-secondary);
+}
+
+.field-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--label-secondary);
+  margin: 10px 0 6px;
+}
+.apple-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--separator);
+  background: var(--bg-grouped);
+  color: var(--label-primary);
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+.apple-input:focus {
+  outline: none;
+  border-color: var(--system-blue);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.18);
+}
+
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 12px;
+}
+.result-actions .apple-btn {
+  min-width: 120px;
+}
+
+.check-result-box,
+.mine-item {
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--fill-quaternary);
+  border: 1px solid var(--separator);
+}
+.check-result-box.win {
+  background: rgba(52, 199, 89, 0.12);
+  border-color: rgba(52, 199, 89, 0.35);
+}
+.check-result-box.lose {
+  background: rgba(142, 142, 147, 0.1);
+}
+.mine-item {
+  display: grid;
+  gap: 8px;
+}
+.mine-meta {
+  font-size: 0.8125rem;
+  color: var(--label-secondary);
+}
+.toast-mini {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(28, 28, 30, 0.92);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 0.875rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s var(--spring);
+  z-index: 9999;
+}
+.toast-mini.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}

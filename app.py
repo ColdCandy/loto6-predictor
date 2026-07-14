@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import random
 import time
 from datetime import timedelta
+from pathlib import Path
 
 import pandas as pd
 import streamlit as st
@@ -40,7 +42,9 @@ from loto6_predictor.strategies import (
     strategy_loto67_overlap,
     strategy_monthly_anchor,
     strategy_monthly_inverse,
+    strategy_overdue,
     strategy_quick_pick,
+    strategy_recent_trend,
 )
 from loto6_predictor.monthly_patterns import monthly_analysis_summary
 from loto6_predictor.loto7_data import DEFAULT_DATA_PATH as LOTO7_DATA_PATH
@@ -419,6 +423,53 @@ def main() -> None:
         st.subheader("📋 最新当選番号")
         render_balls(list(latest.numbers))
         st.caption(f"ボーナス数字: **{latest.bonus:02d}**")
+
+    # 今週のおすすめ（クラウド学習ヒント＋複合スコア＋カバー行）
+    with st.expander("⭐ 今週のおすすめパック（クラウド学習連動）", expanded=True):
+        tip = None
+        tip_path = Path(__file__).resolve().parent / "data" / "ai_next_tip.json"
+        if tip_path.exists():
+            try:
+                tip = json.loads(tip_path.read_text(encoding="utf-8"))
+            except Exception:
+                tip = None
+
+        if tip and tip.get("numbers"):
+            st.markdown(
+                f"**AI検証済み本命**｜確信度 {tip.get('confidence', '-')}%"
+                f"（{tip.get('confidence_label', '')}）｜更新 {tip.get('generated_at', '-')}"
+            )
+            render_balls(list(tip["numbers"]))
+            st.code(tip.get("formatted") or " ".join(f"{n:02d}" for n in tip["numbers"]), language=None)
+            pool = tip.get("pool") or []
+            if len(pool) > 1:
+                st.caption("カバー行（本命周辺）")
+                for line in pool[1:5]:
+                    st.write(
+                        f"{'★' if line.get('line_no') == 1 else str(line.get('line_no', '')) + '.'} "
+                        f"{line.get('formatted', '')}"
+                    )
+        else:
+            st.info("クラウド学習の本命がまだありません。GitHub Actions の自動更新後に表示されます。")
+
+        if st.button("おすすめパックを今すぐ生成（複合＋直近＋出遅れ）", use_container_width=True):
+            st.session_state["weekly_pack"] = [
+                strategy_composite(analyzer, seed=seed),
+                strategy_recent_trend(analyzer, seed=seed + 7),
+                strategy_overdue(analyzer, seed=seed + 13),
+            ]
+
+        if st.session_state.get("weekly_pack"):
+            st.markdown("#### 生成パック")
+            for pred in st.session_state["weekly_pack"]:
+                st.markdown(f"**{pred.get('name', '予想')}**")
+                render_balls(list(pred["numbers"]))
+                st.code(pred.get("formatted", ""), language=None)
+
+        st.caption(
+            "スマホだけで使う場合は公開サイト "
+            "https://coldcandy.github.io/loto6-predictor/ も利用できます。"
+        )
 
     st.divider()
 

@@ -373,34 +373,361 @@ function renderBarChart(containerId, data, labelKey = "label", valueKey = "value
   }
 }
 
-function renderPrediction(container, pred) {
-  let html = `<div class="apple-result-box smooth-reveal">
-    <h3>${pred.name}</h3>
-    <p class="desc">${pred.description}</p>
-    <div class="ball-row">${renderBalls(pred.numbers)}</div>
-    <p class="copy-text">コピー用: ${pred.formatted}</p>`;
-  if (pred.eliminated && pred.eliminated.length) {
-    html += `<p class="eliminated">除外候補: ${pred.eliminated.slice(0, 12).map((n) => String(n).padStart(2, "0")).join(" ")}</p>`;
+const MINE_KEY = "loto6_my_numbers_v1";
+const PRIZE_NAMES = {
+  1: "1等（6個一致）",
+  2: "2等（5個+ボーナス）",
+  3: "3等（5個一致）",
+  4: "4等（4個一致）",
+  5: "5等（3個一致）",
+};
+
+function showToast(msg) {
+  let el = document.getElementById("toast-mini");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "toast-mini";
+    el.className = "toast-mini";
+    document.body.appendChild(el);
   }
-  html += "</div>";
-  container.innerHTML = html;
-  if (window.UltraSmooth) {
-    UltraSmooth.enhanceBalls(container);
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => el.classList.remove("show"), 1800);
+}
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast("コピーしました");
+  } catch (_) {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    ta.remove();
+    showToast("コピーしました");
   }
 }
 
-function renderAllPredictions(container, preds) {
-  container.innerHTML = preds
-    .map(
-      (pred) => `<div class="apple-result-box smooth-reveal">
-      <h3>${pred.name}</h3>
-      <p class="desc">${pred.description}</p>
-      <div class="ball-row">${renderBalls(pred.numbers)}</div>
-      <p class="copy-text">コピー用: ${pred.formatted}</p>
-    </div>`
-    )
-    .join("");
+function loadMine() {
+  try {
+    return JSON.parse(localStorage.getItem(MINE_KEY) || "[]");
+  } catch (_) {
+    return [];
+  }
+}
+
+function saveMine(items) {
+  localStorage.setItem(MINE_KEY, JSON.stringify(items.slice(0, 40)));
+}
+
+function addMine(numbers, label) {
+  const formatted = formatNumbers(numbers);
+  const items = loadMine().filter((x) => x.formatted !== formatted);
+  items.unshift({
+    formatted,
+    numbers: [...numbers].sort((a, b) => a - b),
+    label: label || "保存番号",
+    savedAt: new Date().toISOString(),
+  });
+  saveMine(items);
+  showToast("マイ番号に保存しました");
+  renderMineList();
+}
+
+function parseNumbers(text) {
+  const parts = String(text || "")
+    .split(/[\s,、．.]+/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((s) => parseInt(s, 10));
+  const nums = parts.filter((n) => Number.isInteger(n) && n >= 1 && n <= 43);
+  const uniq = [...new Set(nums)];
+  if (uniq.length !== 6) return null;
+  return uniq.sort((a, b) => a - b);
+}
+
+function findDrawByRound(round) {
+  if (!analyzer) return null;
+  return analyzer.draws.find((d) => d.r === round) || null;
+}
+
+function checkWinning(picked, draw) {
+  const set = new Set(picked);
+  const main = new Set(draw.n);
+  const hits = [...set].filter((n) => main.has(n)).length;
+  const bonusHit = set.has(draw.b);
+  let tier = null;
+  if (hits === 6) tier = 1;
+  else if (hits === 5 && bonusHit) tier = 2;
+  else if (hits === 5) tier = 3;
+  else if (hits === 4) tier = 4;
+  else if (hits === 3) tier = 5;
+  return {
+    hits,
+    bonusHit,
+    tier,
+    prizeName: tier ? PRIZE_NAMES[tier] : "はずれ",
+    matched: [...set].filter((n) => main.has(n)).sort((a, b) => a - b),
+  };
+}
+
+function nextDrawDates(count = 4) {
+  const found = [];
+  const now = new Date();
+  const jst = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+  for (let i = 0; i < 21 && found.length < count; i++) {
+    const d = new Date(jst);
+    d.setDate(jst.getDate() + i);
+    const wd = d.getDay(); // 0=Sun ... 1=Mon, 4=Thu
+    if (wd === 1 || wd === 4) found.push(d);
+  }
+  return found;
+}
+
+function formatJpDate(d) {
+  const weekdays = "日月火水木金土";
+  return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}（${weekdays[d.getDay()]}）`;
+}
+
+function nextDrawDeadline(d) {
+  // 抽選日 18:45 JST を目安にカウントダウン
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return new Date(`${y}-${m}-${day}T18:45:00+09:00`);
+}
+
+function updateCountdown() {
+  const valueEl = document.getElementById("countdown-value");
+  const subEl = document.getElementById("countdown-sub");
+  if (!valueEl) return;
+  const upcoming = nextDrawDates(3);
+  if (!upcoming.length) {
+    valueEl.textContent = "-";
+    return;
+  }
+  let targetDate = upcoming[0];
+  let deadline = nextDrawDeadline(targetDate);
+  const now = Date.now();
+  if (deadline.getTime() <= now && upcoming[1]) {
+    targetDate = upcoming[1];
+    deadline = nextDrawDeadline(targetDate);
+  }
+  const diff = Math.max(0, deadline.getTime() - now);
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  const mins = Math.floor((diff % 3600000) / 60000);
+  const secs = Math.floor((diff % 60000) / 1000);
+  valueEl.textContent =
+    days > 0
+      ? `${days}日 ${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`
+      : `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  if (subEl) {
+    subEl.textContent = `次回 ${formatJpDate(targetDate)} 18:45 頃｜その後 ${upcoming
+      .slice(1, 3)
+      .map(formatJpDate)
+      .join(" / ")}`;
+  }
+}
+
+function predictionCardHtml(pred, extraButtons = "") {
+  let html = `<div class="apple-result-box smooth-reveal" data-formatted="${pred.formatted}">
+    <h3>${pred.name}</h3>
+    <p class="desc">${pred.description || ""}</p>
+    <div class="ball-row">${renderBalls(pred.numbers)}</div>
+    <p class="copy-text">コピー用: ${pred.formatted}</p>
+    <div class="result-actions">
+      <button type="button" class="apple-btn apple-btn-primary btn-copy-line" data-text="${pred.formatted}">コピー</button>
+      <button type="button" class="apple-btn btn-save-line" data-text="${pred.formatted}" data-label="${pred.name}">マイ番号に保存</button>
+      ${extraButtons}
+    </div>`;
+  if (pred.eliminated && pred.eliminated.length) {
+    html += `<p class="eliminated">除外候補: ${pred.eliminated
+      .slice(0, 12)
+      .map((n) => String(n).padStart(2, "0"))
+      .join(" ")}</p>`;
+  }
+  html += "</div>";
+  return html;
+}
+
+function bindResultActions(container) {
+  if (!container) return;
+  container.querySelectorAll(".btn-copy-line").forEach((btn) => {
+    btn.onclick = () => copyText(btn.dataset.text || "");
+  });
+  container.querySelectorAll(".btn-save-line").forEach((btn) => {
+    btn.onclick = () => {
+      const nums = parseNumbers(btn.dataset.text || "");
+      if (nums) addMine(nums, btn.dataset.label || "予想番号");
+    };
+  });
+  container.querySelectorAll(".btn-check-line").forEach((btn) => {
+    btn.onclick = () => {
+      const input = document.getElementById("check-numbers");
+      if (input) input.value = btn.dataset.text || "";
+      document.querySelectorAll(".apple-tab").forEach((t) => t.classList.remove("active"));
+      document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
+      const tab = document.querySelector('.apple-tab[data-panel="panel-check"]');
+      const panel = document.getElementById("panel-check");
+      if (tab) tab.classList.add("active");
+      if (panel) panel.classList.add("active");
+      runCheck(false);
+    };
+  });
+}
+
+function renderPrediction(container, pred) {
+  container.innerHTML = predictionCardHtml(pred);
+  bindResultActions(container);
   if (window.UltraSmooth) UltraSmooth.enhanceBalls(container);
+}
+
+function renderAllPredictions(container, preds) {
+  container.innerHTML = preds.map((pred) => predictionCardHtml(pred)).join("");
+  bindResultActions(container);
+  if (window.UltraSmooth) UltraSmooth.enhanceBalls(container);
+}
+
+function buildWeeklyPack() {
+  const tip = LOTODATA.ai_tip;
+  const pack = [];
+  if (tip && tip.numbers) {
+    pack.push(
+      makeResult(
+        "AI検証済み本命",
+        `第${tip.based_on_round || "?"}回学習｜確信度 ${tip.confidence || "-"}%`,
+        tip.numbers
+      )
+    );
+    (tip.pool || [])
+      .filter((p) => p.line_no !== 1)
+      .slice(0, 3)
+      .forEach((p) => {
+        pack.push(
+          makeResult(
+            `カバー行 ${p.line_no}`,
+            "本命周辺の差し替え行（ほぼ一致狙い）",
+            p.numbers
+          )
+        );
+      });
+  }
+  pack.push(Strategies.composite(analyzer, currentSeed));
+  pack.push(Strategies.recent(analyzer, currentSeed + 7));
+  pack.push(Strategies.overdue(analyzer, currentSeed + 13));
+  // 重複行を除外
+  const seen = new Set();
+  return pack.filter((p) => {
+    if (seen.has(p.formatted)) return false;
+    seen.add(p.formatted);
+    return true;
+  });
+}
+
+function renderWeeklyPack() {
+  const box = document.getElementById("weekly-pack-results");
+  if (!box) return;
+  const pack = buildWeeklyPack();
+  box.dataset.pack = JSON.stringify(pack.map((p) => ({ numbers: p.numbers, name: p.name })));
+  box.innerHTML = pack.map((p) => predictionCardHtml(p)).join("");
+  bindResultActions(box);
+  if (window.UltraSmooth) UltraSmooth.enhanceBalls(box);
+}
+
+function renderMineList() {
+  const el = document.getElementById("mine-list");
+  if (!el) return;
+  const items = loadMine();
+  if (!items.length) {
+    el.innerHTML = `<p class="hint">まだ保存がありません。「マイ番号に保存」やおすすめパックから追加できます</p>`;
+    return;
+  }
+  el.innerHTML = items
+    .map((item, idx) => {
+      const saved = item.savedAt ? new Date(item.savedAt) : null;
+      const when = saved
+        ? `${saved.getMonth() + 1}/${saved.getDate()} ${String(saved.getHours()).padStart(2, "0")}:${String(
+            saved.getMinutes()
+          ).padStart(2, "0")}`
+        : "";
+      return `<div class="mine-item">
+        <div class="mine-meta">${item.label || "保存番号"}｜${when}</div>
+        <div class="ball-row">${renderBalls(item.numbers)}</div>
+        <p class="copy-text">${item.formatted}</p>
+        <div class="result-actions">
+          <button type="button" class="apple-btn apple-btn-primary btn-copy-line" data-text="${item.formatted}">コピー</button>
+          <button type="button" class="apple-btn btn-check-line" data-text="${item.formatted}">当選チェック</button>
+          <button type="button" class="apple-btn btn-del-mine" data-idx="${idx}">削除</button>
+        </div>
+      </div>`;
+    })
+    .join("");
+  bindResultActions(el);
+  el.querySelectorAll(".btn-del-mine").forEach((btn) => {
+    btn.onclick = () => {
+      const items2 = loadMine();
+      items2.splice(+btn.dataset.idx, 1);
+      saveMine(items2);
+      renderMineList();
+      showToast("削除しました");
+    };
+  });
+}
+
+function runCheck(historyMode) {
+  const out = document.getElementById("check-result");
+  const nums = parseNumbers(document.getElementById("check-numbers")?.value);
+  if (!nums) {
+    out.innerHTML = `<div class="check-result-box lose">1〜43から重複なし6個を入力してください</div>`;
+    return;
+  }
+  if (historyMode) {
+    const target = analyzer.draws.slice(-100);
+    const tally = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, miss: 0 };
+    let best = null;
+    for (const d of target) {
+      const r = checkWinning(nums, d);
+      if (r.tier) {
+        tally[r.tier] += 1;
+        if (!best || r.tier < best.tier) best = { ...r, round: d.r, date: d.d };
+      } else tally.miss += 1;
+    }
+    out.innerHTML = `<div class="check-result-box ${best ? "win" : "lose"}">
+      <div class="ball-row">${renderBalls(nums)}</div>
+      <p style="margin-top:10px"><b>直近100回の結果</b></p>
+      <p>1等 ${tally[1]} / 2等 ${tally[2]} / 3等 ${tally[3]} / 4等 ${tally[4]} / 5等 ${tally[5]} / はずれ ${tally.miss}</p>
+      ${
+        best
+          ? `<p>最良: 第${best.round}回（${best.date}） ${best.prizeName}・一致 ${best.hits}個</p>`
+          : "<p>5等以上はなし</p>"
+      }
+    </div>`;
+    return;
+  }
+
+  const roundRaw = document.getElementById("check-round")?.value;
+  const draw = roundRaw ? findDrawByRound(parseInt(roundRaw, 10)) : analyzer.latest;
+  if (!draw) {
+    out.innerHTML = `<div class="check-result-box lose">指定した回のデータが見つかりません</div>`;
+    return;
+  }
+  const r = checkWinning(nums, draw);
+  out.innerHTML = `<div class="check-result-box ${r.tier ? "win" : "lose"}">
+    <p><b>第${draw.r}回（${draw.d}）</b></p>
+    <p>あなたの番号</p>
+    <div class="ball-row">${renderBalls(nums)}</div>
+    <p style="margin-top:10px">当選番号</p>
+    <div class="ball-row">${renderBalls(draw.n)}</div>
+    <p style="margin-top:8px;color:var(--label-secondary)">ボーナス: ${String(draw.b).padStart(2, "0")}</p>
+    <p style="margin-top:12px;font-size:1.1rem"><b>${r.prizeName}</b></p>
+    <p>一致 ${r.hits}個${r.bonusHit ? " ＋ボーナス" : ""}｜一致数字: ${
+      r.matched.length ? formatNumbers(r.matched) : "なし"
+    }</p>
+  </div>`;
 }
 
 let analyzer = null;
@@ -419,7 +746,6 @@ function initApp() {
     analyzer = new Loto6Analyzer(LOTODATA.draws);
     const latest = analyzer.latest;
 
-    // メトリクスは先に同期表示（アニメ失敗でも "-" のままにしない）
     const roundsEl = document.getElementById("meta-rounds");
     if (roundsEl) roundsEl.textContent = `${analyzer.totalRounds} 回`;
     document.getElementById("meta-latest-round").textContent = latest ? `第 ${latest.r} 回` : "-";
@@ -437,7 +763,21 @@ function initApp() {
       document.getElementById("latest-bonus").textContent = `ボーナス: ${String(latest.b).padStart(2, "0")}`;
     }
 
-    // クラウド自動学習の本命ヒント
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+
+    const status = LOTODATA.auto_status;
+    const statusCard = document.getElementById("auto-status-card");
+    if (status && statusCard) {
+      statusCard.style.display = "";
+      const st = document.getElementById("auto-status-text");
+      if (st) {
+        st.textContent =
+          `最終自動処理 ${status.checked_at || "-"}｜学習 ${status.trained ? "実施" : "スキップ"}｜` +
+          `本命 ${status.tip_formatted || "-"}｜第${status.new_round || "?"}回まで保存済み`;
+      }
+    }
+
     const tip = LOTODATA.ai_tip;
     const tipCard = document.getElementById("ai-tip-card");
     if (tip && tip.numbers && tipCard) {
@@ -456,7 +796,34 @@ function initApp() {
           .map((p) => `${p.line_no === 1 ? "★本命" : p.line_no + "."} ${p.formatted}`)
           .join("<br>");
       }
+      const copyAi = document.getElementById("btn-copy-ai");
+      const saveAi = document.getElementById("btn-save-ai");
+      if (copyAi) copyAi.onclick = () => copyText(tip.formatted || formatNumbers(tip.numbers));
+      if (saveAi) saveAi.onclick = () => addMine(tip.numbers, "AI検証済み本命");
     }
+
+    document.getElementById("btn-weekly-pack").onclick = () => {
+      currentSeed = Date.now() % 1000000;
+      renderWeeklyPack();
+    };
+    document.getElementById("btn-save-pack").onclick = () => {
+      const box = document.getElementById("weekly-pack-results");
+      if (!box?.dataset.pack) {
+        renderWeeklyPack();
+      }
+      const pack = JSON.parse(document.getElementById("weekly-pack-results").dataset.pack || "[]");
+      pack.forEach((p) => addMine(p.numbers, p.name));
+      showToast(`${pack.length}行を保存しました`);
+      document.querySelectorAll(".apple-tab").forEach((t) => t.classList.remove("active"));
+      document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
+      document.querySelector('.apple-tab[data-panel="panel-mine"]')?.classList.add("active");
+      document.getElementById("panel-mine")?.classList.add("active");
+      renderMineList();
+    };
+
+    // 起動時におすすめパックを自動表示
+    renderWeeklyPack();
+    renderMineList();
 
     const btnArea = document.getElementById("strategy-buttons");
     STRATEGY_LIST.forEach(({ key, label }) => {
@@ -471,38 +838,49 @@ function initApp() {
       btnArea.appendChild(btn);
     });
 
-  document.getElementById("btn-recommend").onclick = () => {
-    currentKey = "composite";
-    currentSeed = Date.now() % 1000000;
-    renderPrediction(document.getElementById("results"), Strategies.composite(analyzer, currentSeed));
-  };
-
-  document.getElementById("btn-all").onclick = () => {
-    currentKey = null;
-    currentSeed = Date.now() % 1000000;
-    renderAllPredictions(document.getElementById("results"), generateAll(analyzer, currentSeed));
-  };
-
-  document.getElementById("btn-reroll").onclick = () => {
-    currentSeed = Date.now() % 1000000;
-    if (currentKey) {
-      renderPrediction(document.getElementById("results"), Strategies[currentKey](analyzer, currentSeed));
-    } else {
-      renderAllPredictions(document.getElementById("results"), generateAll(analyzer, currentSeed));
-    }
-  };
-
-  document.querySelectorAll(".apple-tab").forEach((tab) => {
-    tab.onclick = () => {
-      document.querySelectorAll(".apple-tab").forEach((t) => t.classList.remove("active"));
-      document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
-      tab.classList.add("active");
-      const panel = document.getElementById(tab.dataset.panel);
-      panel.classList.add("active");
-      if (window.UltraSmooth) UltraSmooth.smoothTabSwitch(panel);
-      if (tab.dataset.panel === "panel-stats") renderStats();
+    document.getElementById("btn-recommend").onclick = () => {
+      currentKey = "composite";
+      currentSeed = Date.now() % 1000000;
+      renderPrediction(document.getElementById("results"), Strategies.composite(analyzer, currentSeed));
     };
-  });
+
+    document.getElementById("btn-all").onclick = () => {
+      currentKey = null;
+      currentSeed = Date.now() % 1000000;
+      renderAllPredictions(document.getElementById("results"), generateAll(analyzer, currentSeed));
+    };
+
+    document.getElementById("btn-reroll").onclick = () => {
+      currentSeed = Date.now() % 1000000;
+      if (currentKey) {
+        renderPrediction(document.getElementById("results"), Strategies[currentKey](analyzer, currentSeed));
+      } else {
+        renderAllPredictions(document.getElementById("results"), generateAll(analyzer, currentSeed));
+      }
+    };
+
+    document.getElementById("btn-check").onclick = () => runCheck(false);
+    document.getElementById("btn-check-history").onclick = () => runCheck(true);
+    document.getElementById("btn-clear-mine").onclick = () => {
+      if (confirm("マイ番号をすべて削除しますか？")) {
+        saveMine([]);
+        renderMineList();
+        showToast("削除しました");
+      }
+    };
+
+    document.querySelectorAll(".apple-tab").forEach((tab) => {
+      tab.onclick = () => {
+        document.querySelectorAll(".apple-tab").forEach((t) => t.classList.remove("active"));
+        document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
+        tab.classList.add("active");
+        const panel = document.getElementById(tab.dataset.panel);
+        panel.classList.add("active");
+        if (window.UltraSmooth) UltraSmooth.smoothTabSwitch(panel);
+        if (tab.dataset.panel === "panel-stats") renderStats();
+        if (tab.dataset.panel === "panel-mine") renderMineList();
+      };
+    });
   } catch (err) {
     console.error(err);
     document.body.innerHTML =
