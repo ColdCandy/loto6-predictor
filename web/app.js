@@ -172,6 +172,50 @@ class Loto6Analyzer {
       最大: Math.max(...sums),
     };
   }
+
+  numberProfile(numbers) {
+    const freq = this.frequency();
+    const recent = this.recentFrequency(50);
+    const gaps = this.lastSeenGap();
+    return [...new Set(numbers)]
+      .filter((n) => n >= 1 && n <= 43)
+      .sort((a, b) => a - b)
+      .map((n) => ({
+        number: n,
+        all_count: freq[n] || 0,
+        recent50: recent[n] || 0,
+        gap: gaps[n] || 0,
+        all_rate: (freq[n] || 0) / Math.max(this.draws.length, 1),
+        recent_rate: (recent[n] || 0) / Math.min(50, Math.max(this.draws.length, 1)),
+      }));
+  }
+
+  rollingHitSeries(numbers, window = 50, windows = 12) {
+    const nums = [...new Set(numbers)].filter((n) => n >= 1 && n <= 43).sort((a, b) => a - b);
+    if (this.draws.length < window) {
+      return { labels: [], series: Object.fromEntries(nums.map((n) => [n, []])), window };
+    }
+    const totalNeed = window * windows;
+    const start = Math.max(0, this.draws.length - totalNeed);
+    let usable = this.draws.slice(start);
+    const nWin = Math.floor(usable.length / window);
+    usable = usable.slice(usable.length - nWin * window);
+    const labels = [];
+    const series = Object.fromEntries(nums.map((n) => [n, []]));
+    for (let i = 0; i < nWin; i++) {
+      const chunk = usable.slice(i * window, (i + 1) * window);
+      const c = {};
+      nums.forEach((n) => (c[n] = 0));
+      for (const d of chunk) {
+        for (const n of d.n) {
+          if (c[n] !== undefined) c[n]++;
+        }
+      }
+      labels.push(`${chunk[0].r}-${chunk[chunk.length - 1].r}`);
+      nums.forEach((n) => series[n].push(c[n]));
+    }
+    return { labels, series, window };
+  }
 }
 
 function formatNumbers(nums) {
@@ -373,6 +417,105 @@ function renderBarChart(containerId, data, labelKey = "label", valueKey = "value
   }
 }
 
+const VIZ_COLORS = ["#007aff", "#34c759", "#ff9500", "#af52de", "#ff3b30", "#5856d6"];
+
+function sparklineSvg(values, color) {
+  if (!values.length) return "";
+  const w = 220;
+  const h = 48;
+  const max = Math.max(...values, 1);
+  const min = 0;
+  const pts = values.map((v, i) => {
+    const x = values.length === 1 ? w / 2 : (i / (values.length - 1)) * (w - 4) + 2;
+    const y = h - 4 - ((v - min) / (max - min || 1)) * (h - 8);
+    return `${x},${y}`;
+  });
+  return `<svg class="sparkline" viewBox="0 0 ${w} ${h}" width="100%" height="48" aria-hidden="true">
+    <polyline fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="${pts.join(" ")}" />
+  </svg>`;
+}
+
+function buildVizHtml(numbers, title) {
+  if (!analyzer || !numbers || !numbers.length) {
+    return `<p class="hint">表示する番号がありません</p>`;
+  }
+  const nums = [...new Set(numbers)].filter((n) => n >= 1 && n <= 43).sort((a, b) => a - b);
+  const profile = analyzer.numberProfile(nums);
+  const rolling = analyzer.rollingHitSeries(nums, 50, 12);
+  const maxAll = Math.max(...profile.map((p) => p.all_count), 1);
+  const maxRecent = Math.max(...profile.map((p) => p.recent50), 1);
+  const maxGap = Math.max(...profile.map((p) => p.gap), 1);
+
+  let html = `<div class="viz-block">
+    <h3 class="viz-title">${title || "予想番号の可視化"}</h3>
+    <p class="viz-caption">各番号の全体出現・直近50回・出遅れ（何回前に出たか）</p>
+    <div class="ball-row" style="margin-bottom:12px">${renderBalls(nums)}</div>
+    <div class="viz-section">
+      <h4>出現回数（全体 / 直近50回）</h4>`;
+
+  profile.forEach((p, i) => {
+    const label = String(p.number).padStart(2, "0");
+    html += `<div class="viz-dual-bar">
+      <span class="bar-label">${label}</span>
+      <div class="viz-dual-tracks">
+        <div class="apple-bar-track"><div class="apple-bar-fill" style="width:${(p.all_count / maxAll) * 100}%;background:${VIZ_COLORS[i % VIZ_COLORS.length]}"></div></div>
+        <div class="apple-bar-track"><div class="apple-bar-fill" style="width:${(p.recent50 / maxRecent) * 100}%;background:${VIZ_COLORS[i % VIZ_COLORS.length]};opacity:0.55"></div></div>
+      </div>
+      <span class="bar-value">${p.all_count}/${p.recent50}</span>
+    </div>`;
+  });
+
+  html += `</div><div class="viz-section">
+      <h4>出遅れ（経過回数）</h4>`;
+  profile.forEach((p, i) => {
+    const label = String(p.number).padStart(2, "0");
+    html += `<div class="bar-row">
+      <span class="bar-label">${label}</span>
+      <div class="apple-bar-track"><div class="apple-bar-fill" style="width:${(p.gap / maxGap) * 100}%;background:${VIZ_COLORS[i % VIZ_COLORS.length]}"></div></div>
+      <span class="bar-value">${p.gap}回</span>
+    </div>`;
+  });
+
+  html += `</div><div class="viz-section">
+      <h4>時期別推移（直近 ${rolling.window}回 × ${rolling.labels.length}区間）</h4>
+      <p class="viz-caption">各区間での出現回数。右ほど直近です。</p>
+      <div class="sparkline-grid">`;
+
+  nums.forEach((n, i) => {
+    const vals = rolling.series[n] || [];
+    const last = vals.length ? vals[vals.length - 1] : 0;
+    html += `<div class="sparkline-card">
+      <div class="sparkline-head">
+        <span class="sparkline-num" style="color:${VIZ_COLORS[i % VIZ_COLORS.length]}">${String(n).padStart(2, "0")}</span>
+        <span class="sparkline-meta">直近区間 ${last}回</span>
+      </div>
+      ${sparklineSvg(vals, VIZ_COLORS[i % VIZ_COLORS.length])}
+      <div class="sparkline-foot">${vals.join(" · ") || "-"}</div>
+    </div>`;
+  });
+
+  html += `</div></div>
+    <p class="viz-caption">濃い棒=全体出現 / 薄い棒=直近50回。推移は抽選の偏りではなく参考グラフです。</p>
+  </div>`;
+  return html;
+}
+
+function showPredictionViz(numbers, title) {
+  const el = document.getElementById("prediction-viz");
+  if (!el) return;
+  el.style.display = "";
+  el.innerHTML = buildVizHtml(numbers, title);
+  if (window.UltraSmooth) UltraSmooth.enhanceBalls(el);
+}
+
+function showTrendsViz(numbers, title) {
+  const el = document.getElementById("trends-viz");
+  if (!el) return;
+  el.innerHTML = buildVizHtml(numbers, title);
+  if (window.UltraSmooth) UltraSmooth.enhanceBalls(el);
+  window._lastTrendNums = numbers;
+}
+
 const MINE_KEY = "loto6_my_numbers_v1";
 const PRIZE_NAMES = {
   1: "1等（6個一致）",
@@ -542,6 +685,7 @@ function predictionCardHtml(pred, extraButtons = "") {
     <div class="result-actions">
       <button type="button" class="apple-btn apple-btn-primary btn-copy-line" data-text="${pred.formatted}">コピー</button>
       <button type="button" class="apple-btn btn-save-line" data-text="${pred.formatted}" data-label="${pred.name}">マイ番号に保存</button>
+      <button type="button" class="apple-btn btn-viz-line" data-text="${pred.formatted}" data-label="${pred.name}">推移を見る</button>
       ${extraButtons}
     </div>`;
   if (pred.eliminated && pred.eliminated.length) {
@@ -565,6 +709,20 @@ function bindResultActions(container) {
       if (nums) addMine(nums, btn.dataset.label || "予想番号");
     };
   });
+  container.querySelectorAll(".btn-viz-line").forEach((btn) => {
+    btn.onclick = () => {
+      const nums = parseNumbers(btn.dataset.text || "");
+      if (!nums) return;
+      const title = `${btn.dataset.label || "予想"} の推移`;
+      showPredictionViz(nums, title);
+      showTrendsViz(nums, title);
+      document.querySelectorAll(".apple-tab").forEach((t) => t.classList.remove("active"));
+      document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
+      document.querySelector('.apple-tab[data-panel="panel-trends"]')?.classList.add("active");
+      document.getElementById("panel-trends")?.classList.add("active");
+      showToast("推移グラフを表示しました");
+    };
+  });
   container.querySelectorAll(".btn-check-line").forEach((btn) => {
     btn.onclick = () => {
       const input = document.getElementById("check-numbers");
@@ -584,12 +742,18 @@ function renderPrediction(container, pred) {
   container.innerHTML = predictionCardHtml(pred);
   bindResultActions(container);
   if (window.UltraSmooth) UltraSmooth.enhanceBalls(container);
+  showPredictionViz(pred.numbers, `${pred.name} の推移`);
+  showTrendsViz(pred.numbers, `${pred.name} の推移`);
 }
 
 function renderAllPredictions(container, preds) {
   container.innerHTML = preds.map((pred) => predictionCardHtml(pred)).join("");
   bindResultActions(container);
   if (window.UltraSmooth) UltraSmooth.enhanceBalls(container);
+  if (preds.length) {
+    showPredictionViz(preds[0].numbers, `${preds[0].name} の推移（先頭行）`);
+    showTrendsViz(preds[0].numbers, `${preds[0].name} の推移（先頭行）`);
+  }
 }
 
 function buildWeeklyPack() {
@@ -636,6 +800,10 @@ function renderWeeklyPack() {
   box.innerHTML = pack.map((p) => predictionCardHtml(p)).join("");
   bindResultActions(box);
   if (window.UltraSmooth) UltraSmooth.enhanceBalls(box);
+  if (pack.length) {
+    showPredictionViz(pack[0].numbers, `${pack[0].name} の推移`);
+    showTrendsViz(pack[0].numbers, `${pack[0].name} の推移`);
+  }
 }
 
 function renderMineList() {
@@ -800,7 +968,44 @@ function initApp() {
       const saveAi = document.getElementById("btn-save-ai");
       if (copyAi) copyAi.onclick = () => copyText(tip.formatted || formatNumbers(tip.numbers));
       if (saveAi) saveAi.onclick = () => addMine(tip.numbers, "AI検証済み本命");
+      showTrendsViz(tip.numbers, "AI検証済み本命の推移");
+      showPredictionViz(tip.numbers, "AI検証済み本命の推移");
     }
+
+    const bindTrendBtn = (id, getNums, title) => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      btn.onclick = () => {
+        const nums = getNums();
+        if (!nums || !nums.length) {
+          showToast("番号がありません");
+          return;
+        }
+        showTrendsViz(nums, title);
+        showPredictionViz(nums, title);
+        showToast("グラフを更新しました");
+      };
+    };
+    bindTrendBtn("btn-trend-ai", () => LOTODATA.ai_tip?.numbers || [], "AI検証済み本命の推移");
+    bindTrendBtn(
+      "btn-trend-hot",
+      () => analyzer.topNumbers(6, 50).map(([n]) => n),
+      "直近ホット TOP6 の推移"
+    );
+    bindTrendBtn(
+      "btn-trend-overdue",
+      () => analyzer.overdueNumbers(6).map(([n]) => n),
+      "出遅れ TOP6 の推移"
+    );
+    document.getElementById("btn-trend-manual")?.addEventListener("click", () => {
+      const nums = parseNumbers(document.getElementById("trend-manual")?.value);
+      if (!nums) {
+        showToast("1〜43から最大6個を入力してください");
+        return;
+      }
+      showTrendsViz(nums, "指定番号の推移");
+      showPredictionViz(nums, "指定番号の推移");
+    });
 
     document.getElementById("btn-weekly-pack").onclick = () => {
       currentSeed = Date.now() % 1000000;

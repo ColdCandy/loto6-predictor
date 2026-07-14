@@ -275,6 +275,61 @@ def render_balls(numbers: list[int]) -> None:
     st.markdown(f'<div class="ball-row">{balls}</div>', unsafe_allow_html=True)
 
 
+def render_prediction_viz(analyzer: Loto6Analyzer, numbers: list[int], title: str = "予想番号の可視化") -> None:
+    """予想番号の出現・出遅れ・時期別推移をグラフ表示"""
+    nums = sorted({n for n in numbers if 1 <= n <= 43})
+    if not nums:
+        return
+    profile = analyzer.number_profile(nums)
+    rolling = analyzer.rolling_hit_series(nums, window=50, windows=12)
+
+    st.markdown(f"#### 📈 {title}")
+    st.caption("全体出現 / 直近50回 / 出遅れ / 時期別推移（参考可視化・当選保証なし）")
+
+    df_prof = pd.DataFrame(
+        [
+            {
+                "番号": f"{r['number']:02d}",
+                "全体出現": r["all_count"],
+                "直近50回": r["recent50"],
+                "出遅れ(回)": r["gap"],
+            }
+            for r in profile
+        ]
+    ).set_index("番号")
+
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown("**出現回数**")
+        _safe_bar_chart(df_prof[["全体出現", "直近50回"]])
+    with c2:
+        st.markdown("**出遅れ（経過回数）**")
+        _safe_bar_chart(df_prof[["出遅れ(回)"]])
+
+    if rolling.get("labels") and rolling.get("series"):
+        st.markdown("**時期別推移（50回×区間）**")
+        trend_cols = {"区間": rolling["labels"]}
+        for n in nums:
+            trend_cols[f"{n:02d}"] = rolling["series"].get(n, [])
+        # 長さ揃え
+        n_lab = len(rolling["labels"])
+        for k, v in list(trend_cols.items()):
+            if k == "区間":
+                continue
+            if len(v) < n_lab:
+                trend_cols[k] = list(v) + [0] * (n_lab - len(v))
+            elif len(v) > n_lab:
+                trend_cols[k] = list(v)[:n_lab]
+        df_trend = pd.DataFrame(trend_cols).set_index("区間")
+        try:
+            st.line_chart(df_trend)
+        except Exception:
+            _safe_bar_chart(df_trend)
+
+    with st.expander("数値表", expanded=False):
+        st.dataframe(df_prof.reset_index(), hide_index=True, use_container_width=True)
+
+
 def render_prediction(pred: dict) -> None:
     st.markdown(f"**{pred['name']}**")
     st.caption(pred["description"])
@@ -462,6 +517,7 @@ def main() -> None:
                         f"{'★' if line.get('line_no') == 1 else str(line.get('line_no', '')) + '.'} "
                         f"{line.get('formatted', '')}"
                     )
+            render_prediction_viz(analyzer, list(tip["numbers"]), title="AI本命の推移")
         else:
             st.info("クラウド学習の本命がまだありません。GitHub Actions の自動更新後に表示されます。")
 
@@ -619,6 +675,11 @@ def main() -> None:
                 render_prediction(st.session_state.selected)
             nums = st.session_state.selected["numbers"]
             st.success(f"コピー用: {' '.join(f'{n:02d}' for n in sorted(nums))}")
+            render_prediction_viz(
+                analyzer,
+                list(nums),
+                title=f"{st.session_state.selected.get('name', '予想')} の推移",
+            )
 
         if st.session_state.get("cover_lines") and st.session_state.selected_key == "AI確信度おすすめ":
             st.markdown("#### 🎯 準一致カバー（本命＋差し替え）")
@@ -631,6 +692,11 @@ def main() -> None:
             for pred in st.session_state.results:
                 with st.container(border=True):
                     render_prediction(pred)
+            render_prediction_viz(
+                analyzer,
+                list(st.session_state.results[0]["numbers"]),
+                title=f"{st.session_state.results[0].get('name', '先頭手法')} の推移",
+            )
 
         if not st.session_state.selected and not st.session_state.results:
             st.info("👆 上のボタンを押すと予想番号が表示されます")
@@ -742,6 +808,11 @@ def main() -> None:
             f"**本数字合計の統計:** 平均 {sum_stats['平均']:.1f} / "
             f"最小 {sum_stats['最小']:.0f} / 最大 {sum_stats['最大']:.0f}"
         )
+
+        st.divider()
+        st.markdown("### 📈 番号の時期別推移（直近ホット）")
+        hot = [n for n, _ in analyzer.top_numbers(6, last_n=50)]
+        render_prediction_viz(analyzer, hot, title="直近ホット TOP6 の推移")
 
         st.divider()
         st.markdown("### 🔬 予想法バックテスト（参考）")

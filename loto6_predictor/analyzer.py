@@ -115,3 +115,55 @@ class Loto6Analyzer:
             elif b == num:
                 related.append((a, count))
         return sorted(related, key=lambda x: x[1], reverse=True)[:n]
+
+    def number_profile(self, numbers: list[int]) -> list[dict]:
+        """予想番号向けの出現・直近・出遅れプロファイル"""
+        freq = self.frequency(include_bonus=False)
+        recent = self.recent_frequency(50, include_bonus=False)
+        gaps = self.last_seen_gap()
+        rows: list[dict] = []
+        for n in sorted(set(numbers)):
+            if not (1 <= n <= 43):
+                continue
+            rows.append(
+                {
+                    "number": n,
+                    "all_count": int(freq[n]),
+                    "recent50": int(recent[n]),
+                    "gap": int(gaps.get(n, 0)),
+                    "all_rate": round(freq[n] / max(len(self.draws), 1), 4),
+                    "recent_rate": round(recent[n] / min(50, max(len(self.draws), 1)), 4),
+                }
+            )
+        return rows
+
+    def rolling_hit_series(
+        self,
+        numbers: list[int],
+        window: int = 50,
+        windows: int = 12,
+    ) -> dict:
+        """直近を window 回×windows 個に分け、各番号の出現回数推移を返す"""
+        nums = [n for n in sorted(set(numbers)) if 1 <= n <= 43]
+        total_need = window * windows
+        if len(self.draws) < window:
+            return {"labels": [], "series": {n: [] for n in nums}, "window": window}
+
+        start = max(0, len(self.draws) - total_need)
+        usable = self.draws[start:]
+        # usable を window サイズのチャンクに分割（端数は先頭から捨てる）
+        n_win = len(usable) // window
+        usable = usable[len(usable) - n_win * window :]
+        labels: list[str] = []
+        series: dict[int, list[int]] = {n: [] for n in nums}
+        for i in range(n_win):
+            chunk = usable[i * window : (i + 1) * window]
+            c: Counter[int] = Counter()
+            for d in chunk:
+                c.update(d.numbers)
+            first_r = chunk[0].round_num
+            last_r = chunk[-1].round_num
+            labels.append(f"{first_r}-{last_r}")
+            for n in nums:
+                series[n].append(int(c[n]))
+        return {"labels": labels, "series": series, "window": window}
