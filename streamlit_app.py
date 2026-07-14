@@ -16,9 +16,12 @@ def _boot_error(exc: BaseException) -> None:
         pass
     st.title("ロト6 予想番号")
     st.error("アプリの起動に失敗しました。")
-    st.info("招待制アプリです。管理者に Secrets（auth.invites）の設定を確認してもらってください。")
+    st.info(
+        "招待制アプリです。Secrets（auth.invites）を確認するか、"
+        "いったん公開サイトをご利用ください。"
+    )
     st.link_button("公開サイト（予想のみ）を開く", PAGES_URL)
-    with st.expander("エラー詳細"):
+    with st.expander("エラー詳細（管理者向け）"):
         st.code("".join(traceback.format_exception(type(exc), exc, exc.__traceback__)))
 
 
@@ -33,10 +36,18 @@ def _ensure_cloud_data() -> None:
         pass
 
 
-try:
+def _run() -> None:
     _ensure_cloud_data()
     from app import main
 
     main()
+
+
+try:
+    _run()
 except Exception as exc:
-    _boot_error(exc)
+    try:
+        _boot_error(exc)
+    except Exception:
+        # Streamlit 自体が壊れているときの最終手段
+        raise SystemExit(f"boot failed: {exc}") from exc

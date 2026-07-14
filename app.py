@@ -219,27 +219,40 @@ def _render_live_sidebar_panel() -> None:
     st.markdown(html, unsafe_allow_html=True)
 
 
+def _live_poll_interval() -> timedelta:
+    """Cloud は1秒二重 fragment で落ちやすいので間隔を広げる"""
+    return timedelta(seconds=10) if is_cloud_hosted() else timedelta(seconds=1)
+
+
 def _show_live_monitor() -> None:
-    _render_live_monitor_bar()
+    if not hasattr(st, "fragment") or is_cloud_hosted():
+        # Cloud: fragment の高頻度自動実行で「Oh no」になりやすい → 静的表示＋手動更新ボタン
+        _render_live_monitor_bar()
+        return
+    try:
+
+        @st.fragment(run_every=_live_poll_interval())
+        def _frag() -> None:
+            _render_live_monitor_bar()
+
+        _frag()
+    except Exception:
+        _render_live_monitor_bar()
 
 
 def _show_live_sidebar() -> None:
-    _render_live_sidebar_panel()
-
-
-if hasattr(st, "fragment"):
+    if not hasattr(st, "fragment") or is_cloud_hosted():
+        _render_live_sidebar_panel()
+        return
     try:
 
-        @st.fragment(run_every=timedelta(seconds=1))
-        def _show_live_monitor() -> None:
-            _render_live_monitor_bar()
-
-        @st.fragment(run_every=timedelta(seconds=1))
-        def _show_live_sidebar() -> None:
+        @st.fragment(run_every=_live_poll_interval())
+        def _frag() -> None:
             _render_live_sidebar_panel()
 
+        _frag()
     except Exception:
-        pass
+        _render_live_sidebar_panel()
 
 
 def _safe_bar_chart(data, **kwargs) -> None:
