@@ -1,2 +1,5 @@
 streamlit>=1.33.0,<1.50.0
 pandas>=2.0.0,<3
+# Streamlit Cloud: st.bar_chart → altair の TypedDict(closed=True) 対策
+altair>=5.5.0,<6
+typing_extensions>=4.12.2

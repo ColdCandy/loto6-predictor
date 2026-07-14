@@ -181,6 +181,18 @@ def _show_live_sidebar() -> None:
     _render_live_sidebar_panel()
 
 
+def _safe_bar_chart(data, **kwargs) -> None:
+    """altair 互換問題でもアプリ全体を落とさない"""
+    try:
+        st.bar_chart(data, **kwargs)
+    except Exception as e:
+        st.warning(f"グラフ表示を省略しました（{type(e).__name__}）")
+        try:
+            st.dataframe(data.reset_index() if hasattr(data, "reset_index") else data, hide_index=True)
+        except Exception:
+            pass
+
+
 def render_balls(numbers: list[int]) -> None:
     balls = "".join(
         f'<span class="ball" style="animation-delay:{i * 2.78}ms">{n:02d}</span>'
@@ -573,7 +585,7 @@ def main() -> None:
             df_all = pd.DataFrame(
                 [{"番号": n, "出現回数": freq[n]} for n in range(1, 44)]
             ).sort_values("出現回数", ascending=False).head(20)
-            st.bar_chart(df_all.set_index("番号"))
+            _safe_bar_chart(df_all.set_index("番号"))
 
         with chart_col2:
             st.markdown("**直近50回の出現回数 TOP20**")
@@ -581,13 +593,13 @@ def main() -> None:
             df_recent = pd.DataFrame(
                 [{"番号": n, "出現回数": recent[n]} for n in range(1, 44)]
             ).sort_values("出現回数", ascending=False).head(20)
-            st.bar_chart(df_recent.set_index("番号"))
+            _safe_bar_chart(df_recent.set_index("番号"))
 
         st.markdown("**全番号の出現回数ヒートマップ**")
         df_heat = pd.DataFrame(
             [{"番号": f"{n:02d}", "出現回数": freq[n]} for n in range(1, 44)]
         )
-        st.bar_chart(df_heat.set_index("番号"), height=300)
+        _safe_bar_chart(df_heat.set_index("番号"), height=300)
 
         stat_col1, stat_col2 = st.columns(2)
         with stat_col1:
@@ -602,7 +614,7 @@ def main() -> None:
             df_odd = pd.DataFrame(
                 [{"パターン": k, "割合": v} for k, v in odd_dist.items()]
             )
-            st.bar_chart(df_odd.set_index("パターン"))
+            _safe_bar_chart(df_odd.set_index("パターン"))
 
         sum_stats = analyzer.sum_range_stats()
         st.markdown(
