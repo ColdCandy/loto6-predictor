@@ -31,6 +31,8 @@ from loto6_predictor.strategies import (
     backtest_strategy,
     generate_all_predictions,
     generate_multiple_lines,
+    strategy_ai_confidence,
+    strategy_ai_verified,
     strategy_composite,
     strategy_loto67_overlap,
     strategy_monthly_anchor,
@@ -183,6 +185,40 @@ def render_prediction(pred: dict) -> None:
         f"小{info['小(1-22)']}/大{info['大(23-43)']} ｜ "
         f"合計{info['合計']} ｜ 連番{info['連番ペア']}組"
     )
+    if pred.get("confidence") is not None:
+        conf = pred["confidence"]
+        label = pred.get("confidence_label", "")
+        st.progress(min(conf / 100.0, 1.0), text=f"AI確信度 {conf}%（{label}）")
+        bt = pred.get("backtest") or {}
+        if bt.get("test_rounds"):
+            st.caption(
+                f"過去検証（抽選前データのみ {bt['test_rounds']}回）: "
+                f"平均一致 {bt['mean']}個 ｜ 2個以上 {bt.get('hit2_rate', 0)}% ｜ "
+                f"3個以上 {bt.get('hit3_rate', 0)}% ｜ "
+                f"ランダム基準 {bt.get('random_baseline_mean', 0.837)}"
+            )
+        ti = pred.get("train_info") or {}
+        if ti:
+            st.caption(
+                f"抽選前学習: {ti.get('trained_at', '未学習')} ｜ "
+                f"検証{ti.get('test_rounds', '?')}回 ｜ "
+                f"プール完全一致 {ti.get('pool_exact_in_train', 0)}回 ｜ "
+                f"平均一致 {ti.get('main_mean_in_train', '-')}"
+            )
+        if pred.get("pool"):
+            with st.expander(f"完全一致カバー用プール（{len(pred['pool'])}口）", expanded=True):
+                for line in pred["pool"]:
+                    mark = "★本命" if line["line_no"] == 1 else f"{line['line_no']}."
+                    st.markdown(f"**{mark}** `{line['formatted']}`")
+        if pred.get("reasons"):
+            with st.expander("この番号を推す理由", expanded=False):
+                for r in pred["reasons"]:
+                    st.write(f"・{r}")
+                if pred.get("top_candidates"):
+                    tops = "  ".join(f"{n:02d}({s})" for n, s in pred["top_candidates"][:8])
+                    st.caption(f"候補上位: {tops}")
+        if pred.get("disclaimer"):
+            st.caption(pred["disclaimer"])
     if pred.get("anchor_info"):
         st.caption(f"📌 {pred['anchor_info']}")
     if pred.get("unlikely_numbers"):
@@ -299,8 +335,8 @@ def main() -> None:
 
     st.divider()
 
-    tab_predict, tab_check, tab_stats, tab_history = st.tabs(
-        ["🎯 予想番号", "✅ 当選チェック", "📊 統計グラフ", "📚 当選データ"]
+    tab_predict, tab_verify, tab_check, tab_stats, tab_history = st.tabs(
+        ["🎯 予想番号", "🔬 抽選前検証", "✅ 当選チェック", "📊 統計グラフ", "📚 当選データ"]
     )
 
     with tab_predict:
@@ -382,26 +418,47 @@ def main() -> None:
                     st.session_state.results = None
 
         st.markdown("")
-        action_cols = st.columns([1, 1, 2])
+        action_cols = st.columns(3)
         with action_cols[0]:
-            if st.button("✨ おすすめ（複合スコア）", type="primary", use_container_width=True):
-                st.session_state.selected_key = "複合スコア法（おすすめ）"
-                st.session_state.selected = strategy_composite(analyzer, seed=seed)
-                st.session_state.results = None
+            if st.button("🛡️ AI検証済み本命（抽選前学習）", type="primary", use_container_width=True):
+                with st.spinner("学習済みモデルで本命＋プールを生成中..."):
+                    st.session_state.selected_key = "AI検証済み本命（抽選前学習）"
+                    st.session_state.selected = strategy_ai_verified(analyzer, seed=seed)
+                    st.session_state.results = None
+                    st.session_state.cover_lines = None
         with action_cols[1]:
-            if st.button("📋 全手法まとめて表示", use_container_width=True):
-                st.session_state.results = generate_all_predictions(analyzer, seed=seed)
-                st.session_state.selected = None
-                st.session_state.selected_key = None
+            if st.button("🤖 AI確信度おすすめ", use_container_width=True):
+                with st.spinner("過去データで一致率を最大化中..."):
+                    st.session_state.selected_key = "AI確信度おすすめ"
+                    st.session_state.selected = strategy_ai_confidence(analyzer, seed=seed)
+                    st.session_state.results = None
+                    from loto6_predictor.ai_recommender import generate_near_miss_lines
+
+                    st.session_state.cover_lines = generate_near_miss_lines(
+                        analyzer, seed=seed, count=4, main=st.session_state.selected
+                    )
         with action_cols[2]:
-            if st.button("🔀 番号を再生成", use_container_width=True):
-                new_seed = random.randint(0, 999999)
-                if st.session_state.selected_key:
+            if st.button("📋 既存方式をすべて表示", use_container_width=True):
+                with st.spinner("既存の全手法を計算中..."):
+                    st.session_state.results = generate_all_predictions(analyzer, seed=seed)
+                    st.session_state.selected = None
+                    st.session_state.selected_key = None
+
+        if st.button("🔀 番号を再生成", use_container_width=True):
+            new_seed = random.randint(0, 999999)
+            if st.session_state.selected_key:
+                with st.spinner("再計算中..."):
                     st.session_state.selected = STRATEGY_BY_NAME[st.session_state.selected_key](
                         analyzer, seed=new_seed
                     )
-                elif st.session_state.results:
-                    st.session_state.results = generate_all_predictions(analyzer, seed=new_seed)
+                    if st.session_state.selected_key == "AI確信度おすすめ":
+                        from loto6_predictor.ai_recommender import generate_near_miss_lines
+
+                        st.session_state.cover_lines = generate_near_miss_lines(
+                            analyzer, seed=new_seed, count=4, main=st.session_state.selected
+                        )
+            elif st.session_state.results:
+                st.session_state.results = generate_all_predictions(analyzer, seed=new_seed)
 
         st.divider()
 
@@ -411,6 +468,12 @@ def main() -> None:
                 render_prediction(st.session_state.selected)
             nums = st.session_state.selected["numbers"]
             st.success(f"コピー用: {' '.join(f'{n:02d}' for n in sorted(nums))}")
+
+        if st.session_state.get("cover_lines") and st.session_state.selected_key == "AI確信度おすすめ":
+            st.markdown("#### 🎯 準一致カバー（本命＋差し替え）")
+            st.caption("完全一致は極めて稀なため、本命周辺でほぼ一致を狙いやすくした複数行です")
+            for line in st.session_state.cover_lines[1:]:
+                st.markdown(f"**{line.get('name', '')}:** `{line['formatted']}`")
 
         if st.session_state.results:
             st.markdown("### 📋 全手法の予想結果")
@@ -435,9 +498,12 @@ def main() -> None:
             multi_count = st.selectbox("生成数", [3, 5, 10], index=1, key="multi_count", label_visibility="collapsed")
         with extra3:
             if st.button(f"📦 {multi_count}パターン一括生成", use_container_width=True):
-                st.session_state.multi_lines = generate_multiple_lines(
-                    analyzer, strategy_composite, count=multi_count, seed=seed
-                )
+                with st.spinner("AI本命＋カバー行を生成中..."):
+                    from loto6_predictor.ai_recommender import generate_near_miss_lines
+
+                    st.session_state.multi_lines = generate_near_miss_lines(
+                        analyzer, seed=seed, count=multi_count
+                    )
 
         if st.session_state.get("multi_lines"):
             st.markdown("#### 📦 一括生成結果")
@@ -471,6 +537,9 @@ def main() -> None:
                     if st.button("削除", key=f"del_fav_{i}"):
                         delete_favorite(i)
                         st.rerun()
+
+    with tab_verify:
+        _render_verify_tab(analyzer)
 
     with tab_check:
         _render_check_tab(analyzer)
@@ -766,6 +835,130 @@ def _render_loto7_history_tab() -> None:
         )
     else:
         st.info("条件に一致するデータがありません。")
+
+
+def _render_verify_tab(analyzer: Loto6Analyzer) -> None:
+    """抽選前想定の検証・反復学習UI（既存方式は維持）"""
+    from loto6_predictor.walkforward_trainer import (
+        compare_all_strategies_walkforward,
+        generate_verified_prediction,
+        iterative_train,
+        load_model,
+    )
+
+    st.subheader("🔬 抽選前検証（Walk-Forward）")
+    st.markdown(
+        """
+**やり方:** 過去の各回について「その回の当選番号が出る前」のデータだけを使い予想し、
+実際の当選と照合します。完全一致・ほぼ一致が増えるまでパラメータを反復学習します。
+
+既存の予想法（複合スコア・ホット・月次など）はそのまま残しています。
+"""
+    )
+    st.warning(
+        "ロト6はランダム抽選です。過去での完全一致再現を目標に学習しますが、"
+        "未来の当選保証ではありません。完全一致を狙う場合はプール複数口が有効です。"
+    )
+
+    model = load_model()
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.metric("学習モデル", "あり" if model else "未学習")
+    with c2:
+        if model and model.get("result"):
+            st.metric("学習時プール完全一致", f"{model['result'].get('pool_exact', 0)} 回")
+        else:
+            st.metric("学習時プール完全一致", "—")
+    with c3:
+        if model:
+            st.metric("学習日時", model.get("trained_at", "—"))
+        else:
+            st.metric("学習日時", "—")
+
+    st.markdown("### 1️⃣ 反復学習（完全一致を目指す）")
+    g1, g2, g3 = st.columns(3)
+    with g1:
+        test_rounds = st.selectbox("検証回数", [40, 60, 80, 100], index=1, key="vf_rounds")
+    with g2:
+        generations = st.selectbox("学習世代数", [8, 12, 20, 30], index=1, key="vf_gens")
+    with g3:
+        target_exact = st.selectbox("目標・歴史的完全一致回数", [1, 2, 3], index=0, key="vf_target")
+
+    if st.button("🚀 抽選前検証で学習開始（時間がかかります）", type="primary", use_container_width=True):
+        progress = st.progress(0.0, text="学習準備中...")
+        status = st.empty()
+
+        def _cb(gen, total, best):
+            progress.progress(gen / total, text=f"世代 {gen}/{total}")
+            status.caption(
+                f"暫定: 完全一致再現 {best.get('pool_exact', 0)} ｜ "
+                f"上位カバー平均 {best.get('cover_mean_in_topk', '-')} ｜ "
+                f"平均一致 {best.get('main_mean', '-')} ｜ "
+                f"4個一致 {best.get('main_hit4', 0)}"
+            )
+
+        with st.spinner("抽選前データだけで反復学習中..."):
+            payload = iterative_train(
+                analyzer.draws,
+                test_rounds=test_rounds,
+                generations=generations,
+                target_exact=target_exact,
+                progress_cb=_cb,
+            )
+        progress.progress(1.0, text="完了")
+        res = payload["result"]
+        st.success(
+            f"学習完了: プール完全一致（上位包含） {res.get('pool_exact', 0)}回 / "
+            f"本命平均一致 {res.get('main_mean')} / "
+            f"世代数 {payload.get('generations_run')}"
+        )
+        if res.get("top_k_containment"):
+            st.caption(
+                "上位Kに当選6個すべてが入った回数: "
+                + " ｜ ".join(f"K={k}: {v}回" for k, v in res["top_k_containment"].items())
+            )
+        if res.get("exact_cases"):
+            st.markdown("#### 🎉 歴史的に完全一致したケース")
+            for ex in res["exact_cases"]:
+                st.write(
+                    f"第{ex['round']}回（{ex['date']}） "
+                    f"予想 `{' '.join(f'{n:02d}' for n in ex['predicted'])}` = "
+                    f"当選 `{' '.join(f'{n:02d}' for n in ex['actual'])}`"
+                )
+        if res.get("near_cases"):
+            st.markdown("#### ほぼ一致（4個以上）")
+            for nc in res["near_cases"][-8:]:
+                st.caption(
+                    f"第{nc['round']}回 {nc['hits']}個一致 — "
+                    f"`{' '.join(f'{n:02d}' for n in nc['predicted'])}` vs "
+                    f"`{' '.join(f'{n:02d}' for n in nc['actual'])}`"
+                )
+        if payload.get("history"):
+            st.dataframe(pd.DataFrame(payload["history"]), hide_index=True, use_container_width=True)
+        st.rerun()
+
+    st.divider()
+    st.markdown("### 2️⃣ 既存方式 vs 新方式の抽選前比較")
+    if st.button("📊 同じ条件で既存・新方式を比較", use_container_width=True):
+        with st.spinner("既存方式も含めて抽選前検証中..."):
+            rows = compare_all_strategies_walkforward(analyzer.draws, test_rounds=60)
+        if rows:
+            st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+        else:
+            st.info("比較に十分なデータがありません。")
+
+    st.divider()
+    st.markdown("### 3️⃣ 学習済みモデルで今すぐ本命を出す")
+    if st.button("🛡️ 検証済み本命＋プールを生成", use_container_width=True):
+        pred = generate_verified_prediction(analyzer, seed=random.randint(0, 999999))
+        st.session_state.selected = pred
+        st.session_state.selected_key = "AI検証済み本命（抽選前学習）"
+        render_prediction(pred)
+        st.success(f"コピー用本命: {pred['formatted']}")
+
+    if model and model.get("result", {}).get("details_tail"):
+        with st.expander("直近の抽選前検証明細（末尾）"):
+            st.dataframe(pd.DataFrame(model["result"]["details_tail"]), hide_index=True)
 
 
 def _render_check_tab(analyzer: Loto6Analyzer) -> None:

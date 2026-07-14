@@ -154,12 +154,26 @@ def strategy_composite(analyzer: Loto6Analyzer, seed: int | None = None) -> dict
     nums = _pick_from_scores(analyzer, scores, seed)
     ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
     return {
-        "name": "複合スコア法（おすすめ）",
+        "name": "複合スコア法",
         "description": "出現頻度・直近傾向・出遅れを総合的に評価します",
         "numbers": nums,
         "formatted": _format_numbers(nums),
         "top_scores": [(n, round(s, 3)) for n, s in ranked[:10]],
     }
+
+
+def strategy_ai_confidence(analyzer: Loto6Analyzer, seed: int | None = None) -> dict:
+    """過去当選のみでウォークフォワード最適化した AI 本命予想"""
+    from .ai_recommender import generate_ai_recommendation
+
+    return generate_ai_recommendation(analyzer, seed=seed, calibrate=True, eval_rounds=60)
+
+
+def strategy_ai_verified(analyzer: Loto6Analyzer, seed: int | None = None) -> dict:
+    """抽選前検証を反復学習した検証済み本命（既存方式とは別系統）"""
+    from .walkforward_trainer import generate_verified_prediction
+
+    return generate_verified_prediction(analyzer, seed=seed, include_pool=True)
 
 
 def strategy_balanced_mix(analyzer: Loto6Analyzer, seed: int | None = None) -> dict:
@@ -370,7 +384,9 @@ STRATEGY_FUNCTIONS = [
 ]
 
 STRATEGY_BY_NAME: dict[str, callable] = {
-    "複合スコア法（おすすめ）": strategy_composite,
+    "AI検証済み本命（抽選前学習）": strategy_ai_verified,
+    "AI確信度おすすめ": strategy_ai_confidence,
+    "複合スコア法": strategy_composite,
     "月次起点法": strategy_monthly_anchor,
     "月次逆張り法": strategy_monthly_inverse,
     "ロト6・7重複法": strategy_loto67_overlap,

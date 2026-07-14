@@ -55,8 +55,36 @@ def print_statistics(analyzer: Loto6Analyzer) -> None:
 
 
 def print_predictions(analyzer: Loto6Analyzer, seed: int | None) -> None:
+    from loto6_predictor.ai_recommender import generate_ai_recommendation
+    from loto6_predictor.walkforward_trainer import generate_verified_prediction, load_model
+
+    print("--- AI検証済み本命（抽選前学習）---")
+    model = load_model()
+    if not model:
+        print("  （未学習のためデフォルト設定で生成。GUIの「抽選前検証」で学習推奨）")
+    verified = generate_verified_prediction(analyzer, seed=seed, include_pool=True)
+    print(f"  → 【 {verified['formatted']} 】")
+    print(f"  確信度: {verified['confidence']}%（{verified['confidence_label']}）")
+    ti = verified.get("train_info") or {}
+    if ti:
+        print(
+            f"  学習時: プール完全一致 {ti.get('pool_exact_in_train', 0)}回 / "
+            f"平均一致 {ti.get('main_mean_in_train')}"
+        )
+    print("  プール:")
+    for line in verified.get("pool", [])[:8]:
+        mark = "本命" if line["line_no"] == 1 else f"{line['line_no']:02d}"
+        print(f"    [{mark}] {line['formatted']}")
+    print()
+
+    print("--- AI確信度おすすめ ---")
+    ai = generate_ai_recommendation(analyzer, seed=seed, calibrate=True, eval_rounds=40)
+    print(f"  → 【 {ai['formatted']} 】")
+    print(f"  確信度: {ai['confidence']}%（{ai['confidence_label']}）")
+    print()
+
     predictions = generate_all_predictions(analyzer, seed=seed)
-    print("--- 予想番号 ---")
+    print("--- 既存方式の予想番号 ---")
     for i, pred in enumerate(predictions, 1):
         print(f"\n{i}. {pred['name']}")
         print(f"   {pred['description']}")
@@ -125,7 +153,8 @@ def main() -> int:
         print_predictions(analyzer, seed=args.seed)
 
         print("=" * 60)
-        print("  おすすめ: 「複合スコア法」の番号を参考にしてください")
+        print("  おすすめ: 「AI検証済み本命」＋プール（抽選前検証タブで学習）")
+        print("  既存方式もそのまま使えます")
         print("  データ更新: python predict.py --update")
         print("=" * 60)
         return 0
