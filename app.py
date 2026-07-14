@@ -256,16 +256,137 @@ def _show_live_sidebar() -> None:
         _render_live_sidebar_panel()
 
 
-def _safe_bar_chart(data, **kwargs) -> None:
-    """altair 互換問題でもアプリ全体を落とさない"""
+def _html_bar_chart(data, *, title: str | None = None, height: int | None = None) -> None:
+    """altair 非依存の棒グラフ（Streamlit Cloud の TypedDict TypeError 回避）"""
     try:
-        st.bar_chart(data, **kwargs)
-    except Exception as e:
-        st.warning(f"グラフ表示を省略しました（{type(e).__name__}）")
+        if isinstance(data, pd.Series):
+            df = data.to_frame(name=str(data.name or "値"))
+        else:
+            df = data.copy() if hasattr(data, "copy") else pd.DataFrame(data)
+            if not isinstance(df, pd.DataFrame):
+                df = pd.DataFrame(df)
+
+        if df.index.name is not None or not isinstance(df.index, pd.RangeIndex):
+            df = df.reset_index()
+        label_col = str(df.columns[0])
+        value_cols = [c for c in df.columns if c != label_col]
+        if not value_cols:
+            st.dataframe(df, hide_index=True, use_container_width=True)
+            return
+
+        for c in value_cols:
+            df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0)
+
+        max_v = float(df[value_cols].to_numpy().max()) if len(df) else 1.0
+        if max_v <= 0:
+            max_v = 1.0
+
+        colors = ["#007aff", "#34c759", "#ff9500", "#af52de", "#ff3b30", "#5856d6"]
+        parts: list[str] = []
+        if title:
+            parts.append(f'<div style="font-weight:600;margin:0 0 8px">{title}</div>')
+        if len(value_cols) > 1:
+            legend = "　".join(
+                f'<span style="color:{colors[i % len(colors)]}">■</span> {c}'
+                for i, c in enumerate(value_cols)
+            )
+            parts.append(f'<div style="font-size:0.8rem;color:#86868b;margin-bottom:8px">{legend}</div>')
+
+        for _, row in df.iterrows():
+            label = str(row[label_col])
+            parts.append('<div style="margin:0 0 10px">')
+            parts.append(
+                f'<div style="font-size:0.8rem;font-variant-numeric:tabular-nums;margin-bottom:4px">{label}</div>'
+            )
+            for i, col in enumerate(value_cols):
+                val = float(row[col])
+                pct = max(0.0, min(100.0, (val / max_v) * 100.0))
+                color = colors[i % len(colors)]
+                parts.append(
+                    '<div style="display:flex;align-items:center;gap:8px;margin:2px 0">'
+                    f'<div style="flex:1;height:10px;background:rgba(116,116,128,0.12);border-radius:5px;overflow:hidden">'
+                    f'<div style="width:{pct:.1f}%;height:100%;background:{color};border-radius:5px"></div></div>'
+                    f'<div style="width:48px;text-align:right;font-size:0.75rem;color:#86868b;'
+                    f'font-variant-numeric:tabular-nums">{val:g}</div></div>'
+                )
+            parts.append("</div>")
+
+        style_h = f"min-height:{int(height)}px;" if height else ""
+        st.markdown(
+            f'<div style="{style_h}padding:4px 0">{"".join(parts)}</div>',
+            unsafe_allow_html=True,
+        )
+    except Exception:
+        try:
+            st.dataframe(data, use_container_width=True)
+        except Exception:
+            st.caption("グラフを表示できませんでした")
+
+
+def _html_line_chart(data) -> None:
+    """altair 非依存の折れ線（SVG）"""
+    try:
+        df = data.copy() if hasattr(data, "copy") else pd.DataFrame(data)
+        if not isinstance(df, pd.DataFrame):
+            df = pd.DataFrame(df)
+        df = df.reset_index()
+        x_col = df.columns[0]
+        y_cols = [c for c in df.columns if c != x_col]
+        for c in y_cols:
+            df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0)
+        if not y_cols or len(df) == 0:
+            st.dataframe(df, hide_index=True, use_container_width=True)
+            return
+
+        w, h, pad = 640, 220, 28
+        max_v = float(df[y_cols].to_numpy().max())
+        if max_v <= 0:
+            max_v = 1.0
+        n = len(df)
+        colors = ["#007aff", "#34c759", "#ff9500", "#af52de", "#ff3b30", "#5856d6"]
+
+        def xy(i: int, v: float) -> tuple[float, float]:
+            x = pad + (0 if n == 1 else i / (n - 1) * (w - 2 * pad))
+            y = h - pad - (float(v) / max_v) * (h - 2 * pad)
+            return x, y
+
+        polylines = []
+        for ci, col in enumerate(y_cols):
+            pts = " ".join(f"{xy(i, row[col])[0]:.1f},{xy(i, row[col])[1]:.1f}" for i, row in df.iterrows())
+            polylines.append(
+                f'<polyline fill="none" stroke="{colors[ci % len(colors)]}" '
+                f'stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="{pts}" />'
+            )
+        legend = "　".join(
+            f'<span style="color:{colors[i % len(colors)]}">■</span> {c}' for i, c in enumerate(y_cols)
+        )
+        labels = "".join(
+            f'<text x="{xy(i, 0)[0]:.1f}" y="{h - 6}" text-anchor="middle" '
+            f'font-size="10" fill="#86868b">{str(row[x_col])[-9:]}</text>'
+            for i, row in df.iterrows()
+            if i == 0 or i == n - 1 or i == n // 2
+        )
+        svg = (
+            f'<div style="font-size:0.8rem;color:#86868b;margin-bottom:6px">{legend}</div>'
+            f'<svg viewBox="0 0 {w} {h}" width="100%" height="{h}" '
+            f'style="background:rgba(116,116,128,0.06);border-radius:12px">'
+            f'{"".join(polylines)}{labels}</svg>'
+        )
+        st.markdown(svg, unsafe_allow_html=True)
+    except Exception:
         try:
             st.dataframe(data.reset_index() if hasattr(data, "reset_index") else data, hide_index=True)
         except Exception:
-            pass
+            st.caption("推移グラフを表示できませんでした")
+
+
+def _safe_bar_chart(data, **kwargs) -> None:
+    """altair 互換問題でも必ず見える棒グラフを出す"""
+    height = kwargs.get("height")
+    try:
+        st.bar_chart(data, **kwargs)
+    except Exception:
+        _html_bar_chart(data, height=height)
 
 
 def render_balls(numbers: list[int]) -> None:
@@ -325,7 +446,7 @@ def render_prediction_viz(analyzer: Loto6Analyzer, numbers: list[int], title: st
             try:
                 st.line_chart(df_trend)
             except Exception:
-                st.dataframe(df_trend.reset_index(), hide_index=True, use_container_width=True)
+                _html_line_chart(df_trend)
 
         with st.expander("数値表", expanded=False):
             st.dataframe(df_prof.reset_index(), hide_index=True, use_container_width=True)
