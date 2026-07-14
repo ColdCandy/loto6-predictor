@@ -38,7 +38,7 @@ def run_bat(name: str) -> int:
 
 
 def open_html() -> None:
-    print("クラウド同期・学習してからHTMLを開きます...")
+    print("クラウドに合わせて同期してからHTMLを開きます...")
     subprocess.call([sys.executable, str(ROOT / "tools" / "local_boot_sync.py")], cwd=ROOT)
     html = ROOT / "dist" / "ロト6予想.html"
     if not html.exists():
