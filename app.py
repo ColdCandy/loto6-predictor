@@ -67,14 +67,25 @@ def _get_lan_ip() -> str | None:
 def _init_streamlit_ui() -> None:
     """クラウド起動を安定させるため、最初の Streamlit 操作は main 内で1回だけ実行"""
     if st.session_state.get("_ui_ready"):
+        # streamlit_app 側で page_config 済みならテーマだけ注入
+        try:
+            inject_apple_theme()
+        except Exception:
+            pass
         return
-    st.set_page_config(
-        page_title="ロト6 予想番号",
-        page_icon="🎱",
-        layout="wide",
-        initial_sidebar_state="expanded",
-    )
-    inject_apple_theme()
+    try:
+        st.set_page_config(
+            page_title="ロト6 予想番号",
+            page_icon="🎱",
+            layout="wide",
+            initial_sidebar_state="expanded",
+        )
+    except Exception:
+        pass
+    try:
+        inject_apple_theme()
+    except Exception:
+        pass
     st.session_state["_ui_ready"] = True
 
 
@@ -99,39 +110,20 @@ def load_analyzer() -> Loto6Analyzer:
 
 def _render_live_monitor_bar() -> None:
     if is_cloud_hosted():
-        interval = realtime_poll_interval_seconds()
-        now_ts = time.time()
-        last = float(st.session_state.get("cloud_last_check_ts") or 0)
-        if last <= 0:
-            st.session_state.cloud_last_check_ts = now_ts
-            last = now_ts
-        elapsed = now_ts - last
-        remaining = max(0, int(interval - elapsed))
+        # Cloud では描画経路でネット取得しない（起動ハング / Oh no の原因になる）
         status = get_data_status()
         from datetime import datetime, timezone, timedelta as td
 
         jst = timezone(td(hours=9))
         now_str = datetime.now(jst).strftime("%H:%M:%S")
-
-        if remaining <= 0:
-            try:
-                from loto6_predictor.data import DEFAULT_DATA_PATH, download_csv
-
-                download_csv(DEFAULT_DATA_PATH)
-                load_analyzer.clear()
-            except Exception:
-                pass
-            st.session_state.cloud_last_check_ts = time.time()
-            remaining = interval
-
         st.markdown(
             f'<div class="live-status">'
             f'<span class="pulse-dot"></span>'
             f'<span>クラウド常時稼働中</span>'
             f'<span>｜ 現在 <b>{now_str}</b></span>'
-            f'<span>｜ 次回チェック <b>{remaining}</b>秒</span>'
             f'<span>｜ 第<b>{status.get("latest_round", "-")}</b>回</span>'
             f'<span>｜ 更新: {status.get("updated_at", "-")}</span>'
+            f'<span>｜ 最新化は左の「今すぐ最新データを取得」</span>'
             f'</div>',
             unsafe_allow_html=True,
         )
@@ -170,26 +162,38 @@ def _render_live_monitor_bar() -> None:
 
 
 def _render_live_sidebar_panel() -> None:
-    live = get_monitor_live_status()
     status = get_data_status()
+    from datetime import datetime, timezone, timedelta as td
 
-    # クラウドでも秒針が動くよう、表示時刻は常に現在時刻を使う
+    jst = timezone(td(hours=9))
+    now_str = datetime.now(jst).strftime("%H:%M:%S")
+
     if is_cloud_hosted():
-        interval = realtime_poll_interval_seconds()
-        now_ts = time.time()
-        last = float(st.session_state.get("cloud_last_check_ts") or now_ts)
-        remaining = max(0, int(interval - (now_ts - last)))
-        now_str = live["now"]
-        last_check = status.get("updated_at", live["last_check"])
-    else:
-        remaining = live["remaining"]
-        now_str = live["now"]
-        last_check = live["last_check"]
+        last_check = status.get("updated_at", "-")
+        html = (
+            f'<div class="sidebar-live">'
+            f'<b>📡 クラウド監視</b><br>'
+            f'現在: <b>{now_str}</b><br>'
+            f'最終確認: {last_check}<br>'
+        )
+        if status.get("exists"):
+            html += (
+                f'第{status["latest_round"]}回 ({status["latest_date"]})<br>'
+                f'データ更新: {status["updated_at"]}'
+            )
+        html += "<br><br><b>☁️ 安定動作モード</b><br>最新化は「今すぐ最新データを取得」"
+        html += "</div>"
+        st.markdown(html, unsafe_allow_html=True)
+        return
+
+    live = get_monitor_live_status()
+    remaining = live["remaining"]
+    last_check = live["last_check"]
 
     html = (
         f'<div class="sidebar-live">'
         f'<b>📡 リアルタイム監視</b><br>'
-        f'現在: <b>{now_str}</b><br>'
+        f'現在: <b>{live["now"]}</b><br>'
         f'次回まで: <b>{remaining}</b>秒<br>'
         f'最終確認: {last_check}<br>'
     )
@@ -200,21 +204,18 @@ def _render_live_sidebar_panel() -> None:
         )
     if live["draw_window"]:
         html += "<br>🔴 抽選日モード（30秒間隔）"
-    if not is_cloud_hosted():
-        try:
-            from tools.security_monitor import get_security_status
+    try:
+        from tools.security_monitor import get_security_status
 
-            sec = get_security_status()
-            html += (
-                f'<br><br><b>🛡️ セキュリティ監視</b><br>'
-                f'状態: {"稼働中" if sec["active"] else "停止"}<br>'
-                f'接続: 全体 {sec["connections"]} / 外部 {sec["external_connections"]}<br>'
-                f'（127.0.0.1は正常動作として除外）'
-            )
-        except Exception:
-            pass
-    else:
-        html += "<br><br><b>☁️ クラウド常時稼働</b><br>1秒ごとに表示を更新中"
+        sec = get_security_status()
+        html += (
+            f'<br><br><b>🛡️ セキュリティ監視</b><br>'
+            f'状態: {"稼働中" if sec["active"] else "停止"}<br>'
+            f'接続: 全体 {sec["connections"]} / 外部 {sec["external_connections"]}<br>'
+            f'（127.0.0.1は正常動作として除外）'
+        )
+    except Exception:
+        pass
     html += "</div>"
     st.markdown(html, unsafe_allow_html=True)
 
@@ -277,57 +278,59 @@ def render_balls(numbers: list[int]) -> None:
 
 def render_prediction_viz(analyzer: Loto6Analyzer, numbers: list[int], title: str = "予想番号の可視化") -> None:
     """予想番号の出現・出遅れ・時期別推移をグラフ表示"""
-    nums = sorted({n for n in numbers if 1 <= n <= 43})
-    if not nums:
-        return
-    profile = analyzer.number_profile(nums)
-    rolling = analyzer.rolling_hit_series(nums, window=50, windows=12)
+    try:
+        nums = sorted({n for n in numbers if 1 <= n <= 43})
+        if not nums:
+            return
+        profile = analyzer.number_profile(nums)
+        rolling = analyzer.rolling_hit_series(nums, window=50, windows=12)
 
-    st.markdown(f"#### 📈 {title}")
-    st.caption("全体出現 / 直近50回 / 出遅れ / 時期別推移（参考可視化・当選保証なし）")
+        st.markdown(f"#### 📈 {title}")
+        st.caption("全体出現 / 直近50回 / 出遅れ / 時期別推移（参考可視化・当選保証なし）")
 
-    df_prof = pd.DataFrame(
-        [
-            {
-                "番号": f"{r['number']:02d}",
-                "全体出現": r["all_count"],
-                "直近50回": r["recent50"],
-                "出遅れ(回)": r["gap"],
-            }
-            for r in profile
-        ]
-    ).set_index("番号")
+        df_prof = pd.DataFrame(
+            [
+                {
+                    "番号": f"{r['number']:02d}",
+                    "全体出現": r["all_count"],
+                    "直近50回": r["recent50"],
+                    "出遅れ(回)": r["gap"],
+                }
+                for r in profile
+            ]
+        ).set_index("番号")
 
-    c1, c2 = st.columns(2)
-    with c1:
-        st.markdown("**出現回数**")
-        _safe_bar_chart(df_prof[["全体出現", "直近50回"]])
-    with c2:
-        st.markdown("**出遅れ（経過回数）**")
-        _safe_bar_chart(df_prof[["出遅れ(回)"]])
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown("**出現回数**")
+            _safe_bar_chart(df_prof[["全体出現", "直近50回"]])
+        with c2:
+            st.markdown("**出遅れ（経過回数）**")
+            _safe_bar_chart(df_prof[["出遅れ(回)"]])
 
-    if rolling.get("labels") and rolling.get("series"):
-        st.markdown("**時期別推移（50回×区間）**")
-        trend_cols = {"区間": rolling["labels"]}
-        for n in nums:
-            trend_cols[f"{n:02d}"] = rolling["series"].get(n, [])
-        # 長さ揃え
-        n_lab = len(rolling["labels"])
-        for k, v in list(trend_cols.items()):
-            if k == "区間":
-                continue
-            if len(v) < n_lab:
-                trend_cols[k] = list(v) + [0] * (n_lab - len(v))
-            elif len(v) > n_lab:
-                trend_cols[k] = list(v)[:n_lab]
-        df_trend = pd.DataFrame(trend_cols).set_index("区間")
-        try:
-            st.line_chart(df_trend)
-        except Exception:
-            _safe_bar_chart(df_trend)
+        if rolling.get("labels") and rolling.get("series"):
+            st.markdown("**時期別推移（50回×区間）**")
+            trend_cols = {"区間": rolling["labels"]}
+            for n in nums:
+                trend_cols[f"{n:02d}"] = rolling["series"].get(n, [])
+            n_lab = len(rolling["labels"])
+            for k, v in list(trend_cols.items()):
+                if k == "区間":
+                    continue
+                if len(v) < n_lab:
+                    trend_cols[k] = list(v) + [0] * (n_lab - len(v))
+                elif len(v) > n_lab:
+                    trend_cols[k] = list(v)[:n_lab]
+            df_trend = pd.DataFrame(trend_cols).set_index("区間")
+            try:
+                st.line_chart(df_trend)
+            except Exception:
+                st.dataframe(df_trend.reset_index(), hide_index=True, use_container_width=True)
 
-    with st.expander("数値表", expanded=False):
-        st.dataframe(df_prof.reset_index(), hide_index=True, use_container_width=True)
+        with st.expander("数値表", expanded=False):
+            st.dataframe(df_prof.reset_index(), hide_index=True, use_container_width=True)
+    except Exception as e:
+        st.caption(f"グラフ表示を省略しました（{type(e).__name__}）")
 
 
 def render_prediction(pred: dict) -> None:
@@ -522,11 +525,14 @@ def main() -> None:
             st.info("クラウド学習の本命がまだありません。GitHub Actions の自動更新後に表示されます。")
 
         if st.button("おすすめパックを今すぐ生成（複合＋直近＋出遅れ）", use_container_width=True):
-            st.session_state["weekly_pack"] = [
-                strategy_composite(analyzer, seed=seed),
-                strategy_recent_trend(analyzer, seed=seed + 7),
-                strategy_overdue(analyzer, seed=seed + 13),
-            ]
+            try:
+                st.session_state["weekly_pack"] = [
+                    strategy_composite(analyzer, seed=seed),
+                    strategy_recent_trend(analyzer, seed=seed + 7),
+                    strategy_overdue(analyzer, seed=seed + 13),
+                ]
+            except Exception as e:
+                st.warning(f"パック生成に失敗しました: {type(e).__name__}")
 
         if st.session_state.get("weekly_pack"):
             st.markdown("#### 生成パック")
