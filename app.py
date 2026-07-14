@@ -8,6 +8,7 @@ import pandas as pd
 import streamlit as st
 
 from loto6_predictor.apple_ui import inject_apple_theme, render_hero
+from loto6_predictor.auth import render_sidebar_account, require_login
 from loto6_predictor.analyzer import Loto6Analyzer
 from loto6_predictor.cloud import is_cloud_hosted
 from loto6_predictor.data import (
@@ -252,6 +253,9 @@ def render_prediction(pred: dict) -> None:
 def main() -> None:
     _init_streamlit_ui()
 
+    if not require_login():
+        st.stop()
+
     if "security_started" not in st.session_state:
         try:
             if not is_cloud_hosted():
@@ -276,6 +280,7 @@ def main() -> None:
 
     with st.sidebar:
         st.header("⚙️ 設定")
+        render_sidebar_account()
         _show_live_sidebar()
 
         if st.button("🔄 今すぐ最新データを取得", use_container_width=True):

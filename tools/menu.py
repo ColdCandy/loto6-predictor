@@ -15,14 +15,15 @@ MENU = """
 ========================================
 
   [1] どこでも使える版 - HTML・Python不要
-  [2] 高機能GUI版 - このPCのみ
+  [2] 高機能GUI版 - このPCのみ（招待ログイン）
   [3] LAN公開版 - 同じWi-Fi内の端末から
-  [4] 外からアクセス版 - おばあちゃん家など遠隔（PC起動中のみ）
-  [5] 常時アクセス設定 - PCオフでも使える（クラウド）
-  [6] 自動で常時公開 - 今すぐクラウドへ同期
-  [7] コマンドライン版
-  [8] 接続を完全停止
-  [9] 終了
+  [4] 外からアクセス版 - 遠隔（PC起動中・招待ログイン）
+  [5] 招待パスワード設定 - 家族用ID/パス発行
+  [6] 常時アクセス設定 - PCオフでも使える（クラウド）
+  [7] 自動で常時公開 - 今すぐクラウドへ同期
+  [8] コマンドライン版
+  [9] 接続を完全停止
+  [0] 終了
 
 """
 
@@ -38,9 +39,13 @@ def run_bat(name: str) -> int:
 def open_html() -> None:
     html = ROOT / "dist" / "ロト6予想.html"
     if not html.exists():
-        print("HTMLファイルを作成中...")
-        subprocess.check_call([sys.executable, str(ROOT / "tools" / "build_standalone.py")], cwd=ROOT)
-    subprocess.Popen(["cmd", "/c", "start", "", str(html)], cwd=ROOT)
+        print("HTMLを生成中...")
+        subprocess.call([sys.executable, str(ROOT / "tools" / "build_standalone.py")], cwd=ROOT)
+    html = ROOT / "dist" / "ロト6予想.html"
+    if html.exists():
+        subprocess.Popen(["cmd", "/c", "start", "", str(html)], cwd=ROOT)
+    else:
+        print("HTMLの生成に失敗しました。")
 
 
 def main() -> int:
@@ -56,11 +61,12 @@ def main() -> int:
         "2": lambda: run_bat("予想GUI.bat"),
         "3": lambda: run_bat("LAN起動.bat"),
         "4": lambda: run_bat("外から起動.bat"),
-        "5": lambda: run_bat("常時アクセス設定.bat"),
-        "6": lambda: run_bat("自動で常時公開.bat"),
-        "7": lambda: run_bat("予想.bat"),
-        "8": lambda: run_bat("接続停止.bat"),
-        "9": lambda: 0,
+        "5": lambda: run_bat("招待パスワード設定.bat"),
+        "6": lambda: run_bat("常時アクセス設定.bat"),
+        "7": lambda: run_bat("自動で常時公開.bat"),
+        "8": lambda: run_bat("予想.bat"),
+        "9": lambda: run_bat("接続停止.bat"),
+        "0": lambda: 0,
     }
 
     action = actions.get(choice)
@@ -69,7 +75,7 @@ def main() -> int:
         return 1
 
     result = action()
-    return 0 if result is None or result == 0 else result
+    return 0 if result is None or result == 0 else int(result)
 
 
 if __name__ == "__main__":

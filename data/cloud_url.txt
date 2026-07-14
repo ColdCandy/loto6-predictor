@@ -1,25 +1,25 @@
 ========================================
-  ロト6予想 - 常時アクセス URL
-  ※ PCの電源が切れていても使えます
+  ロト6予想 - アクセス案内
 ========================================
 
-【推奨・すぐ使える（ログイン不要）】
+【公開サイト（ログイン不要・予想のみ）】
   https://coldcandy.github.io/loto6-predictor/
+  ・PCオフでもOK
+  ・最新当選・AI本命の自動更新あり
 
-  ↑ これをブックマークしてください
-  ・最新当選が出ると GitHub が自動取得・保存
-  ・精度学習もクラウドで自動実行
-  ・サイトに AI本命 が自動反映されます
+【高機能版（招待制・パスワード必須）】
+  1. このPCで「招待パスワード設定.bat」を実行
+  2. 家族ごとの招待ID / パスワードを決めて保存
+  3. 「予想GUI.bat」または「外から起動.bat」で起動
+  4. 相手には「URL + 招待ID + パスワード」を個別に伝える
 
-【自動スケジュール（PCオフでも実行）】
-  ・毎日 0時 / 9時 / 15時（JST）
-  ・月・木 20〜23時は30分ごと（抽選直後）
-  ・更新内容: CSV保存 / AI学習 / Pages再公開
+  Streamlit Cloud を使う場合:
+  - Sharing は Public でも中身はログイン必須
+  - 同じ secrets 内容を Cloud の Secrets に貼る
+  - Main file: streamlit_app.py
 
-【状態確認】
-  https://coldcandy.github.io/loto6-predictor/status.json
-  https://coldcandy.github.io/loto6-predictor/ai_tip.json
-
-【手動実行】
-  GitHub → Actions → 「常時アクセス」→ Run workflow
+【注意】
+  ・secrets.toml は Git に上がりません
+  ・パスワードはSNSに書かない
+  ・完璧なゼロリスクではありませんが、招待制で大幅に安全です
 ========================================

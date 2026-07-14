@@ -13,3 +13,6 @@ data/.sync_lock
 data/.full_auto_installed
 data/auto_sync.log
 *.log
+.streamlit/secrets.toml
+data/public_tunnel_url.txt
+data/streamlit_remote.log
