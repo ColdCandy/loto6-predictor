@@ -3,25 +3,21 @@
   ※ PCの電源が切れていても使えます
 ========================================
 
-【★ まずこちら（最も安定）HTML版】
+【HTML版（すぐ使える）】
   https://coldcandy.github.io/loto6-predictor/
 
-  ・インストール不要
-  ・PCの電源オフでも使える
-  ・「Oh no」が出ない
-
-【高機能版 Streamlit】
-  https://loto6-predictor-nmrmsaoqhebs2wxvbs6oin.streamlit.app/
-
-  ※ 「Oh no」が出る場合:
-    1. 上のHTML版を使う（おすすめ）
-    2. 1分待って再読み込み
-    3. share.streamlit.io → Main file を streamlit_app.py に変更
-    4. Reboot app を実行
-
-【PCが起動しているときだけ】
-  ・予想GUI.bat → 同じPC内で使う
-  ・外から起動.bat → 一時URL（PCを切ると使えない）
+【高機能版 Streamlit（初回のみ設定）】
+  1. ブラウザで https://share.streamlit.io/ を開く
+  2. GitHub でログイン
+  3. リポジトリ: ColdCandy/loto6-predictor / メインファイル: streamlit_app.py
+  4. Deploy をクリック → 常時 URL が発行されます
 
 データは抽選日を含め自動更新されます。
+
+【完全自動（設定済み）】
+  ・PC起動時 → 自動同期
+  ・毎日9:00 → 自動同期
+  ・月・木 21:45/22:30 → 抽選後に自動同期
+  ・PCオフでも GitHub が毎日・抽選日に更新
+  ※ 何もしなくてOK
 ========================================
