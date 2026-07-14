@@ -9,6 +9,9 @@ echo.
 echo  まず安定URL（PCオフでもOK・推奨）:
 echo  https://coldcandy.github.io/loto6-predictor/
 echo.
+echo  クラウド同期・学習を実行してから起動します...
+python tools\local_boot_sync.py
+echo.
 echo  この後、高機能版の一時URLも発行します。
 echo  停止するとき → 接続停止.bat
 echo.

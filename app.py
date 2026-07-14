@@ -538,6 +538,38 @@ def main() -> None:
         except Exception:
             st.session_state.security_started = False
 
+    # PCローカル: 最近の起動同期がなければクラウド同期・保存・学習
+    if not is_cloud_hosted() and not st.session_state.get("_local_boot_synced"):
+        st.session_state["_local_boot_synced"] = True
+        need_sync = True
+        status_path = Path(__file__).resolve().parent / "data" / "local_boot_status.json"
+        try:
+            if status_path.exists() and (time.time() - status_path.stat().st_mtime) < 1800:
+                need_sync = False
+                st.session_state["local_boot_result"] = json.loads(
+                    status_path.read_text(encoding="utf-8")
+                )
+        except Exception:
+            need_sync = True
+        if need_sync:
+            with st.spinner("クラウド同期中… 当選保存・学習・予想更新を実行しています"):
+                try:
+                    import sys
+
+                    root = Path(__file__).resolve().parent
+                    if str(root) not in sys.path:
+                        sys.path.insert(0, str(root))
+                    from tools.local_boot_sync import sync_on_boot
+
+                    boot = sync_on_boot(light=True)
+                    st.session_state["local_boot_result"] = boot
+                    load_analyzer.clear()
+                except Exception as e:
+                    st.session_state["local_boot_result"] = {
+                        "ok": False,
+                        "message": f"起動同期スキップ: {type(e).__name__}",
+                    }
+
     render_hero(cloud=is_cloud_hosted())
 
     _show_live_monitor()
@@ -546,6 +578,35 @@ def main() -> None:
         st.header("⚙️ 設定")
         render_sidebar_account()
         _show_live_sidebar()
+
+        if not is_cloud_hosted():
+            boot = st.session_state.get("local_boot_result") or {}
+            st.markdown("### 🔁 PC起動同期")
+            if boot.get("message"):
+                if boot.get("ok"):
+                    st.success(boot["message"])
+                else:
+                    st.info(boot.get("message", ""))
+            if boot.get("improve", {}).get("detail"):
+                st.caption(str(boot["improve"]["detail"])[:120])
+            if st.button("クラウド同期＋学習を再実行", use_container_width=True):
+                with st.spinner("同期・学習中..."):
+                    try:
+                        import sys
+
+                        root = Path(__file__).resolve().parent
+                        if str(root) not in sys.path:
+                            sys.path.insert(0, str(root))
+                        from tools.local_boot_sync import sync_on_boot
+
+                        st.session_state["local_boot_result"] = sync_on_boot(light=True)
+                        load_analyzer.clear()
+                    except Exception as e:
+                        st.session_state["local_boot_result"] = {
+                            "ok": False,
+                            "message": f"失敗: {e}",
+                        }
+                st.rerun()
 
         if st.button("🔄 今すぐ最新データを取得", use_container_width=True):
             with st.spinner("取得中..."):
