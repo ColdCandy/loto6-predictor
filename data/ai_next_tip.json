@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026/07/22 17:12",
+  "generated_at": "2026/07/23 01:15",
   "based_on_round": 2121,
   "based_on_date": "2026/7/20",
   "latest_numbers": [
@@ -170,7 +170,7 @@
     }
   ],
   "train_info": {
-    "trained_at": "2026/07/20 00:46",
+    "trained_at": "2026/07/23 01:15",
     "test_rounds": 80,
     "pool_exact_in_train": 5,
     "main_mean_in_train": 0.875,
@@ -293,6 +293,6 @@
     "generations": 3,
     "top_k": 25
   },
-  "model_trained_at": "2026/07/20 00:46",
+  "model_trained_at": "2026/07/23 01:15",
   "disclaimer": "検証は過去データでの再現性です。未来の完全一致を保証しません。完全一致は「抽選前上位Kに当選6個が入った回」をプール列挙でカバーした実績です。"
 }
