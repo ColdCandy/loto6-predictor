@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026/07/23 01:15",
+  "trained_at": "2026/07/26 10:56",
   "test_rounds": 80,
   "generations_run": 3,
   "config": {
@@ -38,12 +38,12 @@
       "top_k": 25
     },
     "main_hits": {
-      "0": 28,
-      "1": 36,
+      "1": 37,
+      "0": 27,
       "3": 2,
       "2": 14
     },
-    "main_mean": 0.875,
+    "main_mean": 0.887,
     "main_exact": 0,
     "main_hit5": 0,
     "main_hit4": 0,
@@ -52,7 +52,7 @@
     "pool_exact": 5,
     "pool_lines": 20,
     "top_k": 25,
-    "cover_mean_in_topk": 3.538,
+    "cover_mean_in_topk": 3.575,
     "top_k_containment": {
       "12": 0,
       "15": 0,
@@ -168,28 +168,6 @@
       }
     ],
     "near_cases": [
-      {
-        "round": 2087,
-        "date": "2026/3/23",
-        "hits": 4,
-        "predicted": [
-          24,
-          42,
-          6,
-          37,
-          35,
-          26
-        ],
-        "actual": [
-          7,
-          10,
-          15,
-          18,
-          26,
-          39
-        ],
-        "main_hits": 1
-      },
       {
         "round": 2088,
         "date": "2026/3/26",
@@ -607,42 +585,33 @@
           26
         ],
         "main_hits": 0
-      }
-    ],
-    "objective": 5666.375,
-    "random_baseline_mean": 0.837,
-    "details_tail": [
+      },
       {
-        "round_num": 2107,
-        "date": "2026/6/1",
+        "round": 2122,
+        "date": "2026/7/23",
+        "hits": 5,
         "predicted": [
+          8,
+          5,
+          2,
           6,
           18,
-          21,
-          24,
-          37,
-          42
+          43
         ],
         "actual": [
-          5,
-          8,
-          27,
-          32,
-          36,
-          39
-        ],
-        "hits": 0,
-        "exact": false,
-        "best_line_hits": 5,
-        "best_line": [
+          12,
+          15,
           18,
-          42,
           21,
-          28,
-          6,
-          24
-        ]
-      },
+          26,
+          32
+        ],
+        "main_hits": 1
+      }
+    ],
+    "objective": 5667.887,
+    "random_baseline_mean": 0.837,
+    "details_tail": [
       {
         "round_num": 2108,
         "date": "2026/6/4",
@@ -1076,42 +1045,73 @@
           18,
           36
         ]
+      },
+      {
+        "round_num": 2122,
+        "date": "2026/7/23",
+        "predicted": [
+          2,
+          5,
+          6,
+          21,
+          27,
+          42
+        ],
+        "actual": [
+          12,
+          15,
+          18,
+          21,
+          26,
+          32
+        ],
+        "hits": 1,
+        "exact": false,
+        "best_line_hits": 5,
+        "best_line": [
+          8,
+          5,
+          2,
+          6,
+          18,
+          43
+        ]
       }
     ]
   },
   "history": [
     {
       "generation": 1,
-      "objective": 5658.375,
+      "objective": 5659.887,
       "pool_exact": 5,
-      "cover_mean": 3.538,
+      "cover_mean": 3.575,
       "contain_18": 1,
       "contain_22": 4,
-      "main_mean": 0.875,
+      "main_mean": 0.887,
       "main_hit4": 0,
       "main_hit3": 0,
       "main_exact": 0
     },
     {
       "generation": 2,
-      "objective": 5658.375,
+      "objective": 5659.887,
       "pool_exact": 5,
-      "cover_mean": 3.538,
+      "cover_mean": 3.575,
       "contain_18": 1,
       "contain_22": 4,
-      "main_mean": 0.875,
+      "main_mean": 0.887,
       "main_hit4": 0,
       "main_hit3": 0,
       "main_exact": 0
     },
     {
       "generation": 3,
-      "objective": 5658.375,
+      "objective": 5659.887,
       "pool_exact": 5,
-      "cover_mean": 3.538,
+      "cover_mean": 3.575,
       "contain_18": 1,
       "contain_22": 4,
-      "main_mean": 0.875,
+      "main_mean": 0.887,
       "main_hit4": 0,
       "main_hit3": 0,
       "main_exact": 0
