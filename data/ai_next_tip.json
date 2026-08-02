@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026/08/02 00:52",
+  "generated_at": "2026/08/02 10:56",
   "based_on_round": 2124,
   "based_on_date": "2026/7/30",
   "latest_numbers": [
@@ -15,13 +15,13 @@
   "numbers": [
     2,
     5,
-    6,
+    8,
     26,
     27,
-    37
+    42
   ],
-  "formatted": "02 05 06 26 27 37",
-  "confidence": 88.8,
+  "formatted": "02 05 08 26 27 42",
+  "confidence": 82.4,
   "confidence_label": "高い",
   "pool": [
     {
@@ -29,99 +29,51 @@
       "numbers": [
         2,
         5,
-        6,
+        8,
         26,
         27,
-        37
+        42
       ],
-      "formatted": "02 05 06 26 27 37"
+      "formatted": "02 05 08 26 27 42"
     },
     {
       "line_no": 2,
       "numbers": [
         2,
         5,
-        6,
+        8,
+        26,
         27,
-        36,
-        37
+        35
       ],
-      "formatted": "02 05 06 27 36 37"
+      "formatted": "02 05 08 26 27 35"
     },
     {
       "line_no": 3,
       "numbers": [
         2,
         5,
-        6,
+        8,
+        26,
         35,
-        37,
         42
       ],
-      "formatted": "02 05 06 35 37 42"
+      "formatted": "02 05 08 26 35 42"
     },
     {
       "line_no": 4,
       "numbers": [
-        1,
         2,
-        6,
+        5,
+        8,
+        27,
         35,
-        37,
         42
       ],
-      "formatted": "01 02 06 35 37 42"
+      "formatted": "02 05 08 27 35 42"
     },
     {
       "line_no": 5,
-      "numbers": [
-        2,
-        5,
-        6,
-        27,
-        37,
-        42
-      ],
-      "formatted": "02 05 06 27 37 42"
-    },
-    {
-      "line_no": 6,
-      "numbers": [
-        2,
-        5,
-        6,
-        18,
-        27,
-        37
-      ],
-      "formatted": "02 05 06 18 27 37"
-    },
-    {
-      "line_no": 7,
-      "numbers": [
-        2,
-        5,
-        6,
-        26,
-        37,
-        42
-      ],
-      "formatted": "02 05 06 26 37 42"
-    },
-    {
-      "line_no": 8,
-      "numbers": [
-        2,
-        5,
-        6,
-        27,
-        35,
-        37
-      ],
-      "formatted": "02 05 06 27 35 37"
-    },
-    {
-      "line_no": 9,
       "numbers": [
         2,
         5,
@@ -133,78 +85,105 @@
       "formatted": "02 05 08 26 27 37"
     },
     {
-      "line_no": 10,
+      "line_no": 6,
       "numbers": [
-        2,
+        1,
         5,
-        6,
+        8,
         26,
         35,
+        42
+      ],
+      "formatted": "01 05 08 26 35 42"
+    },
+    {
+      "line_no": 7,
+      "numbers": [
+        5,
+        8,
+        18,
+        26,
+        27,
+        35
+      ],
+      "formatted": "05 08 18 26 27 35"
+    },
+    {
+      "line_no": 8,
+      "numbers": [
+        1,
+        5,
+        8,
+        26,
+        27,
+        35
+      ],
+      "formatted": "01 05 08 26 27 35"
+    },
+    {
+      "line_no": 9,
+      "numbers": [
+        1,
+        5,
+        8,
+        26,
+        27,
         37
       ],
-      "formatted": "02 05 06 26 35 37"
+      "formatted": "01 05 08 26 27 37"
+    },
+    {
+      "line_no": 10,
+      "numbers": [
+        1,
+        5,
+        8,
+        27,
+        35,
+        42
+      ],
+      "formatted": "01 05 08 27 35 42"
     },
     {
       "line_no": 11,
       "numbers": [
-        2,
         5,
-        6,
-        36,
-        37,
+        8,
+        26,
+        27,
+        35,
         42
       ],
-      "formatted": "02 05 06 36 37 42"
+      "formatted": "05 08 26 27 35 42"
     },
     {
       "line_no": 12,
       "numbers": [
         2,
         5,
-        6,
-        18,
+        8,
         26,
-        37
+        27,
+        36
       ],
-      "formatted": "02 05 06 18 26 37"
+      "formatted": "02 05 08 26 27 36"
     }
   ],
   "train_info": {
-    "trained_at": "2026/07/30 01:16",
+    "trained_at": "2026/08/02 10:56",
     "test_rounds": 80,
-    "pool_exact_in_train": 6,
-    "main_mean_in_train": 0.9,
+    "pool_exact_in_train": 5,
+    "main_mean_in_train": 0.863,
     "main_hit4": 0,
-    "main_hit3": 3,
+    "main_hit3": 1,
     "top_k_containment": {
       "12": 0,
       "15": 1,
       "18": 1,
-      "22": 4,
-      "25": 6
+      "22": 2,
+      "25": 5
     },
     "exact_cases": [
-      {
-        "round": 2074,
-        "date": "2026/2/5",
-        "predicted": [
-          5,
-          6,
-          16,
-          26,
-          27,
-          36
-        ],
-        "actual": [
-          5,
-          6,
-          16,
-          26,
-          27,
-          36
-        ],
-        "note": "抽選前スコア上位25に当選6個すべて。上位候補の組み合わせプールで完全一致を再現可能"
-      },
       {
         "round": 2080,
         "date": "2026/2/26",
@@ -314,6 +293,6 @@
     "generations": 3,
     "top_k": 25
   },
-  "model_trained_at": "2026/07/30 01:16",
+  "model_trained_at": "2026/08/02 10:56",
   "disclaimer": "検証は過去データでの再現性です。未来の完全一致を保証しません。完全一致は「抽選前上位Kに当選6個が入った回」をプール列挙でカバーした実績です。"
 }
