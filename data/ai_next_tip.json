@@ -1,43 +1,31 @@
 {
-  "generated_at": "2026/08/20 15:32",
-  "based_on_round": 2129,
-  "based_on_date": "2026/8/17",
+  "generated_at": "2026/08/20 20:22",
+  "based_on_round": 2130,
+  "based_on_date": "2026/8/20",
   "latest_numbers": [
-    2,
-    4,
-    6,
-    16,
-    25,
-    41
+    12,
+    18,
+    35,
+    40,
+    41,
+    43
   ],
-  "latest_bonus": 40,
+  "latest_bonus": 3,
   "name": "AI検証済み本命（抽選前学習）",
   "numbers": [
     1,
     2,
-    8,
+    6,
     35,
     37,
     42
   ],
-  "formatted": "01 02 08 35 37 42",
+  "formatted": "01 02 06 35 37 42",
   "confidence": 82.6,
   "confidence_label": "高い",
   "pool": [
     {
       "line_no": 1,
-      "numbers": [
-        1,
-        2,
-        8,
-        35,
-        37,
-        42
-      ],
-      "formatted": "01 02 08 35 37 42"
-    },
-    {
-      "line_no": 2,
       "numbers": [
         1,
         2,
@@ -47,6 +35,18 @@
         42
       ],
       "formatted": "01 02 06 35 37 42"
+    },
+    {
+      "line_no": 2,
+      "numbers": [
+        1,
+        2,
+        8,
+        35,
+        37,
+        42
+      ],
+      "formatted": "01 02 08 35 37 42"
     },
     {
       "line_no": 3,
@@ -63,38 +63,38 @@
     {
       "line_no": 4,
       "numbers": [
-        1,
         2,
-        20,
+        6,
+        8,
         35,
         37,
         42
       ],
-      "formatted": "01 02 20 35 37 42"
+      "formatted": "02 06 08 35 37 42"
     },
     {
       "line_no": 5,
       "numbers": [
         1,
         2,
-        18,
-        35,
+        6,
+        20,
         37,
         42
       ],
-      "formatted": "01 02 18 35 37 42"
+      "formatted": "01 02 06 20 37 42"
     },
     {
       "line_no": 6,
       "numbers": [
         1,
+        6,
         8,
-        18,
         35,
         37,
         42
       ],
-      "formatted": "01 08 18 35 37 42"
+      "formatted": "01 06 08 35 37 42"
     },
     {
       "line_no": 7,
@@ -112,61 +112,61 @@
       "line_no": 8,
       "numbers": [
         1,
-        8,
+        2,
         20,
         35,
         37,
         42
       ],
-      "formatted": "01 08 20 35 37 42"
+      "formatted": "01 02 20 35 37 42"
     },
     {
       "line_no": 9,
       "numbers": [
+        1,
         2,
         8,
         26,
-        35,
         37,
         42
       ],
-      "formatted": "02 08 26 35 37 42"
+      "formatted": "01 02 08 26 37 42"
     },
     {
       "line_no": 10,
       "numbers": [
         1,
-        8,
+        2,
+        6,
         26,
-        35,
         37,
         42
       ],
-      "formatted": "01 08 26 35 37 42"
+      "formatted": "01 02 06 26 37 42"
     },
     {
       "line_no": 11,
       "numbers": [
         1,
-        8,
+        6,
+        20,
         35,
-        36,
         37,
         42
       ],
-      "formatted": "01 08 35 36 37 42"
+      "formatted": "01 06 20 35 37 42"
     },
     {
       "line_no": 12,
       "numbers": [
         2,
         6,
-        8,
+        20,
         35,
         37,
         42
       ],
-      "formatted": "02 06 08 35 37 42"
+      "formatted": "02 06 20 35 37 42"
     }
   ],
   "train_info": {
