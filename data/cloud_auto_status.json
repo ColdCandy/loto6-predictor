@@ -1,11 +1,11 @@
 {
-  "checked_at": "2026/09/14 11:31:50",
+  "checked_at": "2026/09/14 20:22:28",
   "data_updated": false,
   "loto7_updated": true,
-  "trained": false,
-  "old_round": 2136,
-  "new_round": 2136,
-  "tip_formatted": "06 15 18 26 35 37",
+  "trained": true,
+  "old_round": 2137,
+  "new_round": 2137,
+  "tip_formatted": "06 18 20 35 37 43",
   "model_path": "data/ai_trained_model.json",
-  "pool_exact": 5
+  "pool_exact": 4
 }

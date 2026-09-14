@@ -1,35 +1,14 @@
 {
-  "trained_at": "2026/09/11 19:21",
-  "pool_exact": 5,
+  "trained_at": "2026/09/14 20:22",
+  "pool_exact": 4,
   "top_k_containment": {
     "12": 0,
-    "15": 1,
+    "15": 0,
     "18": 1,
-    "22": 2,
-    "25": 5
+    "22": 4,
+    "25": 4
   },
   "exact_cases": [
-    {
-      "round": 2075,
-      "date": "2026/2/9",
-      "predicted": [
-        7,
-        10,
-        14,
-        16,
-        35,
-        37
-      ],
-      "actual": [
-        7,
-        10,
-        14,
-        16,
-        35,
-        37
-      ],
-      "note": "抽選前スコア上位25に当選6個すべて。上位候補の組み合わせプールで完全一致を再現可能"
-    },
     {
       "round": 2080,
       "date": "2026/2/26",
@@ -117,15 +96,37 @@
   ],
   "near_cases": [
     {
+      "round": 2104,
+      "date": "2026/5/21",
+      "hits": 4,
+      "predicted": [
+        18,
+        6,
+        42,
+        24,
+        37,
+        21
+      ],
+      "actual": [
+        18,
+        19,
+        21,
+        25,
+        28,
+        34
+      ],
+      "main_hits": 2
+    },
+    {
       "round": 2105,
       "date": "2026/5/25",
       "hits": 4,
       "predicted": [
         18,
         6,
-        21,
         24,
         42,
+        21,
         37
       ],
       "actual": [
@@ -144,8 +145,8 @@
       "hits": 4,
       "predicted": [
         18,
-        21,
         24,
+        21,
         42,
         6,
         37
@@ -168,9 +169,9 @@
         18,
         42,
         21,
-        6,
         28,
-        37
+        6,
+        24
       ],
       "actual": [
         5,
@@ -211,8 +212,8 @@
       "predicted": [
         21,
         6,
-        42,
         28,
+        42,
         43,
         18
       ],
@@ -276,11 +277,11 @@
       "hits": 4,
       "predicted": [
         42,
-        5,
-        2,
         6,
-        8,
-        18
+        2,
+        5,
+        18,
+        8
       ],
       "actual": [
         15,
@@ -299,10 +300,10 @@
       "predicted": [
         5,
         8,
-        2,
         43,
-        35,
-        6
+        6,
+        2,
+        36
       ],
       "actual": [
         3,
@@ -319,12 +320,12 @@
       "date": "2026/7/20",
       "hits": 4,
       "predicted": [
-        5,
         2,
         8,
+        5,
         6,
-        36,
-        18
+        18,
+        36
       ],
       "actual": [
         1,
@@ -341,9 +342,9 @@
       "date": "2026/7/23",
       "hits": 5,
       "predicted": [
+        8,
         5,
         2,
-        8,
         6,
         18,
         43
@@ -364,11 +365,11 @@
       "hits": 4,
       "predicted": [
         5,
-        2,
-        6,
         8,
-        42,
-        27
+        6,
+        2,
+        43,
+        42
       ],
       "actual": [
         1,
@@ -378,7 +379,7 @@
         37,
         40
       ],
-      "main_hits": 1
+      "main_hits": 2
     },
     {
       "round": 2124,
@@ -389,8 +390,8 @@
         6,
         8,
         1,
-        27,
-        42
+        18,
+        26
       ],
       "actual": [
         6,
@@ -410,8 +411,8 @@
         5,
         8,
         1,
-        35,
         2,
+        35,
         42
       ],
       "actual": [
@@ -432,8 +433,8 @@
         8,
         5,
         42,
-        37,
         1,
+        37,
         2
       ],
       "actual": [
@@ -456,7 +457,7 @@
         2,
         42,
         6,
-        35
+        18
       ],
       "actual": [
         13,
@@ -476,9 +477,9 @@
         37,
         8,
         2,
-        42,
         6,
-        18
+        18,
+        42
       ],
       "actual": [
         2,
@@ -497,10 +498,10 @@
       "predicted": [
         37,
         42,
-        35,
-        2,
+        8,
         1,
-        8
+        2,
+        35
       ],
       "actual": [
         25,
@@ -513,38 +514,16 @@
       "main_hits": 1
     },
     {
-      "round": 2132,
-      "date": "2026/8/27",
-      "hits": 4,
-      "predicted": [
-        35,
-        37,
-        42,
-        2,
-        18,
-        6
-      ],
-      "actual": [
-        9,
-        15,
-        16,
-        19,
-        31,
-        32
-      ],
-      "main_hits": 0
-    },
-    {
       "round": 2134,
       "date": "2026/9/3",
       "hits": 4,
       "predicted": [
         35,
         37,
-        42,
+        43,
         2,
-        6,
-        43
+        42,
+        18
       ],
       "actual": [
         5,
@@ -560,38 +539,38 @@
   "history": [
     {
       "generation": 1,
-      "objective": 5667.95,
-      "pool_exact": 5,
-      "cover_mean": 3.675,
+      "objective": 4574.9,
+      "pool_exact": 4,
+      "cover_mean": 3.65,
       "contain_18": 1,
       "contain_22": 4,
-      "main_mean": 0.95,
+      "main_mean": 0.9,
       "main_hit4": 0,
       "main_hit3": 0,
       "main_exact": 0
     },
     {
       "generation": 2,
-      "objective": 5667.95,
-      "pool_exact": 5,
-      "cover_mean": 3.675,
+      "objective": 4574.9,
+      "pool_exact": 4,
+      "cover_mean": 3.65,
       "contain_18": 1,
       "contain_22": 4,
-      "main_mean": 0.95,
+      "main_mean": 0.9,
       "main_hit4": 0,
       "main_hit3": 0,
       "main_exact": 0
     },
     {
       "generation": 3,
-      "objective": 5673.012,
-      "pool_exact": 5,
-      "cover_mean": 3.7,
+      "objective": 4574.9,
+      "pool_exact": 4,
+      "cover_mean": 3.65,
       "contain_18": 1,
-      "contain_22": 2,
-      "main_mean": 1.012,
+      "contain_22": 4,
+      "main_mean": 0.9,
       "main_hit4": 0,
-      "main_hit3": 1,
+      "main_hit3": 0,
       "main_exact": 0
     }
   ]
