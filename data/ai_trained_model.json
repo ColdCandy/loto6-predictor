@@ -1,66 +1,87 @@
 {
-  "trained_at": "2026/09/14 20:22",
-  "test_rounds": 60,
+  "trained_at": "2026/09/18 00:25",
+  "test_rounds": 80,
   "generations_run": 3,
   "config": {
     "weights": {
-      "freq_all": 0.1,
-      "freq_20": 0.2,
-      "freq_50": 0.15,
-      "freq_100": 0.08,
-      "gap": 0.1,
-      "gap_sweet": 0.12,
-      "pair": 0.08,
-      "recent_hit": 0.05,
-      "transition": 0.12
+      "freq_all": 0.09477073862137231,
+      "freq_20": 0.03951659719329903,
+      "freq_50": 0.1647019977511318,
+      "freq_100": 0.09727167550382984,
+      "gap": 0.13203055842210898,
+      "gap_sweet": 0.028992957603063994,
+      "pair": 0.18222212313950095,
+      "recent_hit": 0.12873175356478786,
+      "transition": 0.13176159820090547
     },
-    "candidates": 18,
+    "candidates": 14,
     "pool_lines": 20,
     "top_k": 25
   },
   "result": {
     "ok": true,
-    "test_rounds": 60,
+    "test_rounds": 80,
     "config": {
       "weights": {
-        "freq_all": 0.1,
-        "freq_20": 0.2,
-        "freq_50": 0.15,
-        "freq_100": 0.08,
-        "gap": 0.1,
-        "gap_sweet": 0.12,
-        "pair": 0.08,
-        "recent_hit": 0.05,
-        "transition": 0.12
+        "freq_all": 0.09477073862137231,
+        "freq_20": 0.03951659719329903,
+        "freq_50": 0.1647019977511318,
+        "freq_100": 0.09727167550382984,
+        "gap": 0.13203055842210898,
+        "gap_sweet": 0.028992957603063994,
+        "pair": 0.18222212313950095,
+        "recent_hit": 0.12873175356478786,
+        "transition": 0.13176159820090547
       },
-      "candidates": 18,
+      "candidates": 14,
       "pool_lines": 20,
       "top_k": 25
     },
     "main_hits": {
-      "2": 12,
-      "1": 27,
-      "0": 20,
-      "3": 1
+      "2": 18,
+      "1": 36,
+      "3": 2,
+      "0": 24
     },
-    "main_mean": 0.9,
+    "main_mean": 0.975,
     "main_exact": 0,
     "main_hit5": 0,
     "main_hit4": 0,
-    "main_hit3": 1,
-    "main_hit2": 12,
-    "pool_exact": 4,
+    "main_hit3": 2,
+    "main_hit2": 18,
+    "pool_exact": 6,
     "pool_lines": 20,
     "top_k": 25,
-    "cover_mean_in_topk": 3.65,
+    "cover_mean_in_topk": 3.788,
     "top_k_containment": {
       "12": 0,
       "15": 0,
       "18": 1,
-      "22": 4,
-      "25": 4
+      "22": 2,
+      "25": 6
     },
     "exact_cases": [
+      {
+        "round": 2074,
+        "date": "2026/2/5",
+        "predicted": [
+          5,
+          6,
+          16,
+          26,
+          27,
+          36
+        ],
+        "actual": [
+          5,
+          6,
+          16,
+          26,
+          27,
+          36
+        ],
+        "note": "抽選前スコア上位25に当選6個すべて。上位候補の組み合わせプールで完全一致を再現可能"
+      },
       {
         "round": 2080,
         "date": "2026/2/26",
@@ -79,6 +100,27 @@
           36,
           37,
           38
+        ],
+        "note": "抽選前スコア上位25に当選6個すべて。上位候補の組み合わせプールで完全一致を再現可能"
+      },
+      {
+        "round": 2098,
+        "date": "2026/4/30",
+        "predicted": [
+          1,
+          6,
+          15,
+          18,
+          19,
+          42
+        ],
+        "actual": [
+          1,
+          6,
+          15,
+          18,
+          19,
+          42
         ],
         "note": "抽選前スコア上位25に当選6個すべて。上位候補の組み合わせプールで完全一致を再現可能"
       },
@@ -148,16 +190,82 @@
     ],
     "near_cases": [
       {
+        "round": 2100,
+        "date": "2026/5/7",
+        "hits": 4,
+        "predicted": [
+          6,
+          37,
+          24,
+          42,
+          18,
+          26
+        ],
+        "actual": [
+          8,
+          17,
+          24,
+          32,
+          35,
+          41
+        ],
+        "main_hits": 1
+      },
+      {
+        "round": 2102,
+        "date": "2026/5/14",
+        "hits": 5,
+        "predicted": [
+          24,
+          6,
+          37,
+          42,
+          26,
+          21
+        ],
+        "actual": [
+          18,
+          21,
+          25,
+          28,
+          30,
+          43
+        ],
+        "main_hits": 1
+      },
+      {
+        "round": 2103,
+        "date": "2026/5/18",
+        "hits": 4,
+        "predicted": [
+          42,
+          24,
+          18,
+          6,
+          37,
+          21
+        ],
+        "actual": [
+          1,
+          2,
+          4,
+          5,
+          8,
+          38
+        ],
+        "main_hits": 0
+      },
+      {
         "round": 2104,
         "date": "2026/5/21",
         "hits": 4,
         "predicted": [
-          18,
-          6,
           42,
+          6,
+          21,
+          18,
           24,
-          37,
-          21
+          37
         ],
         "actual": [
           18,
@@ -172,13 +280,13 @@
       {
         "round": 2105,
         "date": "2026/5/25",
-        "hits": 4,
+        "hits": 5,
         "predicted": [
           18,
           6,
-          24,
-          42,
           21,
+          42,
+          24,
           37
         ],
         "actual": [
@@ -196,11 +304,11 @@
         "date": "2026/5/28",
         "hits": 4,
         "predicted": [
+          6,
           18,
-          24,
           21,
           42,
-          6,
+          24,
           37
         ],
         "actual": [
@@ -218,12 +326,12 @@
         "date": "2026/6/1",
         "hits": 5,
         "predicted": [
-          18,
+          6,
           42,
           21,
+          18,
           28,
-          6,
-          24
+          37
         ],
         "actual": [
           5,
@@ -262,12 +370,12 @@
         "date": "2026/6/15",
         "hits": 5,
         "predicted": [
-          21,
           6,
-          28,
+          18,
           42,
-          43,
-          18
+          24,
+          21,
+          37
         ],
         "actual": [
           1,
@@ -277,7 +385,7 @@
           37,
           43
         ],
-        "main_hits": 1
+        "main_hits": 0
       },
       {
         "round": 2113,
@@ -321,19 +429,19 @@
           36,
           37
         ],
-        "main_hits": 2
+        "main_hits": 1
       },
       {
         "round": 2119,
         "date": "2026/7/13",
-        "hits": 4,
+        "hits": 5,
         "predicted": [
-          42,
           6,
+          42,
           2,
-          5,
-          18,
-          8
+          26,
+          35,
+          27
         ],
         "actual": [
           15,
@@ -346,38 +454,16 @@
         "main_hits": 0
       },
       {
-        "round": 2120,
-        "date": "2026/7/16",
-        "hits": 4,
-        "predicted": [
-          5,
-          8,
-          43,
-          6,
-          2,
-          36
-        ],
-        "actual": [
-          3,
-          8,
-          13,
-          14,
-          16,
-          43
-        ],
-        "main_hits": 2
-      },
-      {
         "round": 2121,
         "date": "2026/7/20",
         "hits": 4,
         "predicted": [
-          2,
           8,
-          5,
-          6,
           18,
-          36
+          6,
+          2,
+          42,
+          37
         ],
         "actual": [
           1,
@@ -392,14 +478,14 @@
       {
         "round": 2122,
         "date": "2026/7/23",
-        "hits": 5,
+        "hits": 4,
         "predicted": [
           8,
-          5,
-          2,
           6,
+          42,
           18,
-          43
+          43,
+          2
         ],
         "actual": [
           12,
@@ -416,12 +502,12 @@
         "date": "2026/7/27",
         "hits": 4,
         "predicted": [
-          5,
-          8,
           6,
-          2,
+          8,
+          42,
           43,
-          42
+          26,
+          2
         ],
         "actual": [
           1,
@@ -434,60 +520,16 @@
         "main_hits": 2
       },
       {
-        "round": 2124,
-        "date": "2026/7/30",
-        "hits": 4,
-        "predicted": [
-          5,
-          6,
-          8,
-          1,
-          18,
-          26
-        ],
-        "actual": [
-          6,
-          20,
-          29,
-          36,
-          37,
-          41
-        ],
-        "main_hits": 1
-      },
-      {
-        "round": 2125,
-        "date": "2026/8/3",
-        "hits": 4,
-        "predicted": [
-          5,
-          8,
-          1,
-          2,
-          35,
-          42
-        ],
-        "actual": [
-          3,
-          22,
-          25,
-          28,
-          30,
-          43
-        ],
-        "main_hits": 0
-      },
-      {
         "round": 2126,
         "date": "2026/8/6",
         "hits": 5,
         "predicted": [
-          8,
-          5,
-          42,
-          1,
           37,
-          2
+          6,
+          8,
+          42,
+          2,
+          36
         ],
         "actual": [
           18,
@@ -497,19 +539,19 @@
           37,
           42
         ],
-        "main_hits": 1
+        "main_hits": 2
       },
       {
         "round": 2128,
         "date": "2026/8/13",
-        "hits": 4,
+        "hits": 5,
         "predicted": [
           37,
-          8,
-          2,
           42,
           6,
-          18
+          18,
+          8,
+          35
         ],
         "actual": [
           13,
@@ -522,36 +564,14 @@
         "main_hits": 1
       },
       {
-        "round": 2129,
-        "date": "2026/8/17",
-        "hits": 4,
-        "predicted": [
-          37,
-          8,
-          2,
-          6,
-          18,
-          42
-        ],
-        "actual": [
-          2,
-          4,
-          6,
-          16,
-          25,
-          41
-        ],
-        "main_hits": 2
-      },
-      {
         "round": 2131,
         "date": "2026/8/24",
         "hits": 5,
         "predicted": [
+          6,
           37,
+          18,
           42,
-          8,
-          1,
           2,
           35
         ],
@@ -568,14 +588,14 @@
       {
         "round": 2134,
         "date": "2026/9/3",
-        "hits": 4,
+        "hits": 5,
         "predicted": [
-          35,
           37,
+          35,
           43,
-          2,
+          6,
           42,
-          18
+          1
         ],
         "actual": [
           5,
@@ -586,52 +606,43 @@
           35
         ],
         "main_hits": 1
-      }
-    ],
-    "objective": 4578.9,
-    "random_baseline_mean": 0.837,
-    "details_tail": [
+      },
       {
-        "round_num": 2123,
-        "date": "2026/7/27",
+        "round": 2137,
+        "date": "2026/9/14",
+        "hits": 4,
         "predicted": [
-          2,
-          5,
           6,
-          27,
           37,
-          43
+          35,
+          18,
+          2,
+          21
         ],
         "actual": [
-          1,
-          2,
           4,
-          25,
-          37,
-          40
-        ],
-        "hits": 2,
-        "exact": false,
-        "best_line_hits": 4,
-        "best_line": [
-          5,
           8,
-          6,
-          2,
-          43,
-          42
-        ]
-      },
+          10,
+          25,
+          28,
+          33
+        ],
+        "main_hits": 0
+      }
+    ],
+    "objective": 6764.475,
+    "random_baseline_mean": 0.837,
+    "details_tail": [
       {
         "round_num": 2124,
         "date": "2026/7/30",
         "predicted": [
-          5,
+          1,
+          2,
           6,
-          8,
-          18,
+          21,
           26,
-          27
+          42
         ],
         "actual": [
           6,
@@ -643,25 +654,25 @@
         ],
         "hits": 1,
         "exact": false,
-        "best_line_hits": 4,
+        "best_line_hits": 3,
         "best_line": [
-          5,
           6,
-          8,
-          1,
+          26,
           18,
-          26
+          1,
+          42,
+          5
         ]
       },
       {
         "round_num": 2125,
         "date": "2026/8/3",
         "predicted": [
+          1,
           2,
-          5,
-          8,
-          26,
-          27,
+          6,
+          21,
+          37,
           42
         ],
         "actual": [
@@ -674,13 +685,13 @@
         ],
         "hits": 0,
         "exact": false,
-        "best_line_hits": 4,
+        "best_line_hits": 3,
         "best_line": [
-          5,
-          8,
-          1,
+          6,
+          37,
+          18,
           2,
-          35,
+          8,
           42
         ]
       },
@@ -688,9 +699,9 @@
         "round_num": 2126,
         "date": "2026/8/6",
         "predicted": [
-          5,
           6,
           8,
+          18,
           27,
           36,
           37
@@ -703,28 +714,28 @@
           37,
           42
         ],
-        "hits": 1,
+        "hits": 2,
         "exact": false,
         "best_line_hits": 5,
         "best_line": [
-          8,
-          5,
-          42,
-          1,
           37,
-          2
+          6,
+          8,
+          42,
+          2,
+          36
         ]
       },
       {
         "round_num": 2127,
         "date": "2026/8/10",
         "predicted": [
-          2,
-          5,
+          6,
           8,
+          18,
           36,
           37,
-          38
+          43
         ],
         "actual": [
           7,
@@ -738,12 +749,12 @@
         "exact": false,
         "best_line_hits": 2,
         "best_line": [
-          8,
-          5,
-          2,
           6,
-          1,
-          36
+          18,
+          37,
+          8,
+          43,
+          5
         ]
       },
       {
@@ -752,7 +763,7 @@
         "predicted": [
           2,
           6,
-          8,
+          18,
           35,
           37,
           42
@@ -767,22 +778,22 @@
         ],
         "hits": 1,
         "exact": false,
-        "best_line_hits": 4,
+        "best_line_hits": 5,
         "best_line": [
           37,
-          8,
-          2,
           42,
           6,
-          18
+          18,
+          8,
+          35
         ]
       },
       {
         "round_num": 2129,
         "date": "2026/8/17",
         "predicted": [
-          1,
           2,
+          5,
           6,
           18,
           37,
@@ -798,25 +809,25 @@
         ],
         "hits": 2,
         "exact": false,
-        "best_line_hits": 4,
+        "best_line_hits": 3,
         "best_line": [
           37,
-          8,
-          2,
           6,
+          42,
           18,
-          42
+          8,
+          2
         ]
       },
       {
         "round_num": 2130,
         "date": "2026/8/20",
         "predicted": [
-          1,
           2,
-          8,
+          6,
           35,
           37,
+          38,
           42
         ],
         "actual": [
@@ -831,21 +842,21 @@
         "exact": false,
         "best_line_hits": 3,
         "best_line": [
+          6,
+          2,
           37,
           35,
-          8,
           42,
-          1,
-          2
+          8
         ]
       },
       {
         "round_num": 2131,
         "date": "2026/8/24",
         "predicted": [
-          1,
           2,
           6,
+          18,
           35,
           37,
           42
@@ -862,10 +873,10 @@
         "exact": false,
         "best_line_hits": 5,
         "best_line": [
+          6,
           37,
+          18,
           42,
-          8,
-          1,
           2,
           35
         ]
@@ -893,23 +904,23 @@
         "exact": false,
         "best_line_hits": 3,
         "best_line": [
-          37,
-          42,
           18,
-          2,
+          6,
+          37,
+          8,
           35,
-          8
+          42
         ]
       },
       {
         "round_num": 2133,
         "date": "2026/8/31",
         "predicted": [
-          2,
           6,
+          18,
+          26,
           35,
           37,
-          42,
           43
         ],
         "actual": [
@@ -925,23 +936,23 @@
         "best_line_hits": 3,
         "best_line": [
           35,
-          42,
-          37,
           43,
-          2,
-          18
+          6,
+          18,
+          37,
+          42
         ]
       },
       {
         "round_num": 2134,
         "date": "2026/9/3",
         "predicted": [
+          1,
           2,
           6,
           35,
           37,
-          42,
-          43
+          42
         ],
         "actual": [
           5,
@@ -953,25 +964,25 @@
         ],
         "hits": 1,
         "exact": false,
-        "best_line_hits": 4,
+        "best_line_hits": 5,
         "best_line": [
-          35,
           37,
+          35,
           43,
-          2,
+          6,
           42,
-          18
+          1
         ]
       },
       {
         "round_num": 2135,
         "date": "2026/9/7",
         "predicted": [
-          1,
           2,
           6,
-          35,
+          21,
           37,
+          38,
           42
         ],
         "actual": [
@@ -986,11 +997,11 @@
         "exact": false,
         "best_line_hits": 1,
         "best_line": [
-          1,
           2,
           6,
-          35,
+          21,
           37,
+          38,
           42
         ]
       },
@@ -998,12 +1009,12 @@
         "round_num": 2136,
         "date": "2026/9/10",
         "predicted": [
-          2,
           6,
+          18,
           26,
           35,
-          42,
-          43
+          37,
+          42
         ],
         "actual": [
           6,
@@ -1018,19 +1029,19 @@
         "best_line_hits": 3,
         "best_line": [
           35,
-          6,
-          43,
-          18,
           42,
-          26
+          6,
+          37,
+          26,
+          43
         ]
       },
       {
         "round_num": 2137,
         "date": "2026/9/14",
         "predicted": [
+          2,
           6,
-          15,
           18,
           26,
           35,
@@ -1046,14 +1057,45 @@
         ],
         "hits": 0,
         "exact": false,
+        "best_line_hits": 4,
+        "best_line": [
+          6,
+          37,
+          35,
+          18,
+          2,
+          21
+        ]
+      },
+      {
+        "round_num": 2138,
+        "date": "2026/9/17",
+        "predicted": [
+          2,
+          6,
+          18,
+          37,
+          38,
+          43
+        ],
+        "actual": [
+          9,
+          16,
+          21,
+          26,
+          38,
+          40
+        ],
+        "hits": 1,
+        "exact": false,
         "best_line_hits": 3,
         "best_line": [
-          35,
           37,
-          18,
-          26,
           6,
-          15
+          43,
+          2,
+          35,
+          18
         ]
       }
     ]
@@ -1061,38 +1103,38 @@
   "history": [
     {
       "generation": 1,
-      "objective": 4574.9,
-      "pool_exact": 4,
-      "cover_mean": 3.65,
+      "objective": 5664.413,
+      "pool_exact": 5,
+      "cover_mean": 3.638,
       "contain_18": 1,
       "contain_22": 4,
-      "main_mean": 0.9,
+      "main_mean": 0.912,
       "main_hit4": 0,
       "main_hit3": 0,
       "main_exact": 0
     },
     {
       "generation": 2,
-      "objective": 4574.9,
-      "pool_exact": 4,
-      "cover_mean": 3.65,
+      "objective": 5675.425,
+      "pool_exact": 5,
+      "cover_mean": 3.763,
       "contain_18": 1,
-      "contain_22": 4,
-      "main_mean": 0.9,
+      "contain_22": 2,
+      "main_mean": 0.925,
       "main_hit4": 0,
-      "main_hit3": 0,
+      "main_hit3": 2,
       "main_exact": 0
     },
     {
       "generation": 3,
-      "objective": 4574.9,
-      "pool_exact": 4,
-      "cover_mean": 3.65,
+      "objective": 6760.438,
+      "pool_exact": 6,
+      "cover_mean": 3.788,
       "contain_18": 1,
-      "contain_22": 4,
-      "main_mean": 0.9,
+      "contain_22": 2,
+      "main_mean": 0.938,
       "main_hit4": 0,
-      "main_hit3": 0,
+      "main_hit3": 2,
       "main_exact": 0
     }
   ],
