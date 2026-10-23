@@ -1,0 +1,27 @@
+{
+  "ok": true,
+  "mode": "cloud-first",
+  "started_at": "2026/10/23 20:35:41",
+  "pull": {
+    "ok": false,
+    "detail": "Automatic merge failed; fix conflicts and then commit the result."
+  },
+  "csv": {
+    "ok": true,
+    "detail": "手元CSV更新（第2148回）"
+  },
+  "improve": {
+    "ok": true,
+    "detail": "クラウドの学習結果を使用（手元再学習なし）"
+  },
+  "push": {
+    "ok": true,
+    "detail": "書き戻しなし（クラウド正本のまま）"
+  },
+  "html": {
+    "ok": true,
+    "detail": "HTML更新"
+  },
+  "finished_at": "2026/10/23 20:35:44",
+  "message": "起動同期完了（パソコンをクラウドに合わせました）"
+}
