@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026/11/17 14:49",
+  "trained_at": "2026/11/20 23:41",
   "test_rounds": 80,
   "generations_run": 3,
   "config": {
@@ -38,9 +38,9 @@
       "top_k": 25
     },
     "main_hits": {
-      "0": 27,
       "1": 38,
       "2": 14,
+      "0": 27,
       "3": 1
     },
     "main_mean": 0.863,
@@ -52,7 +52,7 @@
     "pool_exact": 5,
     "pool_lines": 20,
     "top_k": 25,
-    "cover_mean_in_topk": 3.6,
+    "cover_mean_in_topk": 3.625,
     "top_k_containment": {
       "12": 0,
       "15": 0,
@@ -168,28 +168,6 @@
       }
     ],
     "near_cases": [
-      {
-        "round": 2119,
-        "date": "2026/7/13",
-        "hits": 4,
-        "predicted": [
-          42,
-          6,
-          2,
-          5,
-          18,
-          8
-        ],
-        "actual": [
-          15,
-          18,
-          20,
-          22,
-          30,
-          38
-        ],
-        "main_hits": 0
-      },
       {
         "round": 2120,
         "date": "2026/7/16",
@@ -607,42 +585,33 @@
           40
         ],
         "main_hits": 0
-      }
-    ],
-    "objective": 5660.863,
-    "random_baseline_mean": 0.837,
-    "details_tail": [
+      },
       {
-        "round_num": 2141,
-        "date": "2026/9/28",
+        "round": 2156,
+        "date": "2026/11/19",
+        "hits": 4,
         "predicted": [
           6,
-          18,
-          26,
-          35,
           37,
-          43
+          2,
+          8,
+          11,
+          15
         ],
         "actual": [
-          14,
-          15,
-          22,
-          32,
-          37,
-          41
-        ],
-        "hits": 1,
-        "exact": false,
-        "best_line_hits": 5,
-        "best_line": [
-          35,
-          43,
-          37,
-          6,
+          1,
+          5,
+          23,
           26,
-          25
-        ]
-      },
+          35,
+          42
+        ],
+        "main_hits": 0
+      }
+    ],
+    "objective": 5661.863,
+    "random_baseline_mean": 0.837,
+    "details_tail": [
       {
         "round_num": 2142,
         "date": "2026/10/1",
@@ -1076,15 +1045,46 @@
           2,
           36
         ]
+      },
+      {
+        "round_num": 2156,
+        "date": "2026/11/19",
+        "predicted": [
+          2,
+          6,
+          8,
+          15,
+          37,
+          43
+        ],
+        "actual": [
+          1,
+          5,
+          23,
+          26,
+          35,
+          42
+        ],
+        "hits": 0,
+        "exact": false,
+        "best_line_hits": 4,
+        "best_line": [
+          6,
+          37,
+          2,
+          8,
+          11,
+          15
+        ]
       }
     ]
   },
   "history": [
     {
       "generation": 1,
-      "objective": 5656.875,
+      "objective": 5657.875,
       "pool_exact": 5,
-      "cover_mean": 3.6,
+      "cover_mean": 3.625,
       "contain_18": 1,
       "contain_22": 5,
       "main_mean": 0.875,
@@ -1094,9 +1094,9 @@
     },
     {
       "generation": 2,
-      "objective": 5656.875,
+      "objective": 5657.875,
       "pool_exact": 5,
-      "cover_mean": 3.6,
+      "cover_mean": 3.625,
       "contain_18": 1,
       "contain_22": 5,
       "main_mean": 0.875,
@@ -1106,9 +1106,9 @@
     },
     {
       "generation": 3,
-      "objective": 5656.875,
+      "objective": 5657.875,
       "pool_exact": 5,
-      "cover_mean": 3.6,
+      "cover_mean": 3.625,
       "contain_18": 1,
       "contain_22": 5,
       "main_mean": 0.875,
