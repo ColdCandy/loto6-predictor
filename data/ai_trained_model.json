@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026/11/20 23:41",
+  "trained_at": "2026/11/24 01:59",
   "test_rounds": 80,
   "generations_run": 3,
   "config": {
@@ -38,12 +38,12 @@
       "top_k": 25
     },
     "main_hits": {
-      "1": 38,
       "2": 14,
-      "0": 27,
+      "1": 37,
+      "0": 28,
       "3": 1
     },
-    "main_mean": 0.863,
+    "main_mean": 0.85,
     "main_exact": 0,
     "main_hit5": 0,
     "main_hit4": 0,
@@ -609,40 +609,9 @@
         "main_hits": 0
       }
     ],
-    "objective": 5661.863,
+    "objective": 5661.85,
     "random_baseline_mean": 0.837,
     "details_tail": [
-      {
-        "round_num": 2142,
-        "date": "2026/10/1",
-        "predicted": [
-          6,
-          18,
-          26,
-          35,
-          37,
-          43
-        ],
-        "actual": [
-          2,
-          14,
-          20,
-          21,
-          31,
-          39
-        ],
-        "hits": 0,
-        "exact": false,
-        "best_line_hits": 3,
-        "best_line": [
-          35,
-          43,
-          6,
-          37,
-          18,
-          26
-        ]
-      },
       {
         "round_num": 2143,
         "date": "2026/10/5",
@@ -1076,42 +1045,73 @@
           11,
           15
         ]
+      },
+      {
+        "round_num": 2157,
+        "date": "2026/11/23",
+        "predicted": [
+          2,
+          6,
+          11,
+          15,
+          36,
+          37
+        ],
+        "actual": [
+          13,
+          20,
+          22,
+          34,
+          38,
+          39
+        ],
+        "hits": 0,
+        "exact": false,
+        "best_line_hits": 3,
+        "best_line": [
+          6,
+          37,
+          2,
+          15,
+          35,
+          11
+        ]
       }
     ]
   },
   "history": [
     {
       "generation": 1,
-      "objective": 5657.875,
+      "objective": 5657.863,
       "pool_exact": 5,
       "cover_mean": 3.625,
       "contain_18": 1,
       "contain_22": 5,
-      "main_mean": 0.875,
+      "main_mean": 0.863,
       "main_hit4": 0,
       "main_hit3": 0,
       "main_exact": 0
     },
     {
       "generation": 2,
-      "objective": 5657.875,
+      "objective": 5657.863,
       "pool_exact": 5,
       "cover_mean": 3.625,
       "contain_18": 1,
       "contain_22": 5,
-      "main_mean": 0.875,
+      "main_mean": 0.863,
       "main_hit4": 0,
       "main_hit3": 0,
       "main_exact": 0
     },
     {
       "generation": 3,
-      "objective": 5657.875,
+      "objective": 5657.863,
       "pool_exact": 5,
       "cover_mean": 3.625,
       "contain_18": 1,
       "contain_22": 5,
-      "main_mean": 0.875,
+      "main_mean": 0.863,
       "main_hit4": 0,
       "main_hit3": 0,
       "main_exact": 0

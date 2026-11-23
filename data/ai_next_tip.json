@@ -1,27 +1,27 @@
 {
-  "generated_at": "2026/11/23 13:52",
-  "based_on_round": 2156,
-  "based_on_date": "2026/11/19",
+  "generated_at": "2026/11/24 01:59",
+  "based_on_round": 2157,
+  "based_on_date": "2026/11/23",
   "latest_numbers": [
-    1,
-    5,
-    23,
-    26,
-    35,
-    42
+    13,
+    20,
+    22,
+    34,
+    38,
+    39
   ],
-  "latest_bonus": 8,
+  "latest_bonus": 33,
   "name": "AI検証済み本命（抽選前学習）",
   "numbers": [
     2,
     6,
     11,
     15,
-    36,
+    35,
     37
   ],
-  "formatted": "02 06 11 15 36 37",
-  "confidence": 82.4,
+  "formatted": "02 06 11 15 35 37",
+  "confidence": 82.2,
   "confidence_label": "高い",
   "pool": [
     {
@@ -31,10 +31,10 @@
         6,
         11,
         15,
-        36,
+        35,
         37
       ],
-      "formatted": "02 06 11 15 36 37"
+      "formatted": "02 06 11 15 35 37"
     },
     {
       "line_no": 2,
@@ -51,29 +51,17 @@
     {
       "line_no": 3,
       "numbers": [
-        2,
-        6,
-        11,
-        15,
-        37,
-        38
-      ],
-      "formatted": "02 06 11 15 37 38"
-    },
-    {
-      "line_no": 4,
-      "numbers": [
-        2,
         6,
         11,
         15,
         35,
+        36,
         37
       ],
-      "formatted": "02 06 11 15 35 37"
+      "formatted": "06 11 15 35 36 37"
     },
     {
-      "line_no": 5,
+      "line_no": 4,
       "numbers": [
         2,
         6,
@@ -85,7 +73,55 @@
       "formatted": "02 06 15 35 36 37"
     },
     {
+      "line_no": 5,
+      "numbers": [
+        2,
+        5,
+        6,
+        15,
+        35,
+        37
+      ],
+      "formatted": "02 05 06 15 35 37"
+    },
+    {
       "line_no": 6,
+      "numbers": [
+        2,
+        6,
+        15,
+        35,
+        37,
+        43
+      ],
+      "formatted": "02 06 15 35 37 43"
+    },
+    {
+      "line_no": 7,
+      "numbers": [
+        2,
+        6,
+        11,
+        35,
+        36,
+        37
+      ],
+      "formatted": "02 06 11 35 36 37"
+    },
+    {
+      "line_no": 8,
+      "numbers": [
+        2,
+        6,
+        11,
+        21,
+        35,
+        37
+      ],
+      "formatted": "02 06 11 21 35 37"
+    },
+    {
+      "line_no": 9,
       "numbers": [
         2,
         6,
@@ -97,83 +133,47 @@
       "formatted": "02 06 08 15 35 37"
     },
     {
-      "line_no": 7,
-      "numbers": [
-        2,
-        6,
-        15,
-        21,
-        36,
-        37
-      ],
-      "formatted": "02 06 15 21 36 37"
-    },
-    {
-      "line_no": 8,
-      "numbers": [
-        2,
-        6,
-        15,
-        21,
-        37,
-        38
-      ],
-      "formatted": "02 06 15 21 37 38"
-    },
-    {
-      "line_no": 9,
-      "numbers": [
-        2,
-        6,
-        15,
-        35,
-        37,
-        38
-      ],
-      "formatted": "02 06 15 35 37 38"
-    },
-    {
       "line_no": 10,
       "numbers": [
         2,
+        5,
         6,
-        15,
-        19,
+        11,
         35,
         37
       ],
-      "formatted": "02 06 15 19 35 37"
+      "formatted": "02 05 06 11 35 37"
     },
     {
       "line_no": 11,
       "numbers": [
         2,
+        5,
         6,
-        8,
-        15,
-        36,
+        21,
+        35,
         37
       ],
-      "formatted": "02 06 08 15 36 37"
+      "formatted": "02 05 06 21 35 37"
     },
     {
       "line_no": 12,
       "numbers": [
         2,
         6,
-        8,
+        11,
         15,
-        37,
-        38
+        36,
+        37
       ],
-      "formatted": "02 06 08 15 37 38"
+      "formatted": "02 06 11 15 36 37"
     }
   ],
   "train_info": {
-    "trained_at": "2026/11/20 23:41",
+    "trained_at": "2026/11/24 01:59",
     "test_rounds": 80,
     "pool_exact_in_train": 5,
-    "main_mean_in_train": 0.863,
+    "main_mean_in_train": 0.85,
     "main_hit4": 0,
     "main_hit3": 1,
     "top_k_containment": {
@@ -293,6 +293,6 @@
     "generations": 3,
     "top_k": 25
   },
-  "model_trained_at": "2026/11/20 23:41",
+  "model_trained_at": "2026/11/24 01:59",
   "disclaimer": "検証は過去データでの再現性です。未来の完全一致を保証しません。完全一致は「抽選前上位Kに当選6個が入った回」をプール列挙でカバーした実績です。"
 }
